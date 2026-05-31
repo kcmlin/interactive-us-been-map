@@ -4,38 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Been Map for the United States</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
-    <!-- React & ReactDOM -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-    <!-- Babel Standalone (runs JSX natively in the browser) -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <!-- Lucide Icons Global Library -->
     <script src="https://unpkg.com/lucide-react@latest"></script>
 </head>
-<body>
+<body class="bg-slate-950 text-slate-100">
     <div id="root"></div>
 
     <script type="text/babel">
+        // Fetch React hooks globally so you don't need 'import' statements
         const { useState, useEffect, useRef } = React;
+
+        // Fetch Lucide Icons safely from the React variant
         const { 
-            Download, Share2, Sparkles, MapPin, Sliders, Calendar, Edit3, Filter, 
-            CheckCircle2, Grid, Trash2, Settings, Plus, Minus, Info, Lock,     
-            Unlock, BookOpen, Heart, Globe, Award, Search, Check, Copy, 
-            ChevronRight, RefreshCw, Sun, Moon 
+          Download, Share2, Sparkles, MapPin, Sliders, Calendar, Edit3, Filter, 
+          CheckCircle2, Grid, Trash2, Settings, Plus, Minus, Info, Lock, 
+          Unlock, BookOpen, Heart, Globe, Award, Search, Check, Copy, 
+          ChevronRight, RefreshCw, Sun, Moon 
         } = lucideReact;
 
-        // --- MOCK FIREBASE CONFIG FOR GITHUB PAGES DIRECT RUNS ---
-        let db = null;
-        let auth = null;
-        let appId = 'travel-statebins';
-
+        // Static configuration defaults
         const STATES_DATA = [
           { id: 'AK', name: 'Alaska', col: 0, row: 0, region: 'West' },
           { id: 'ME', name: 'Maine', col: 11, row: 0, region: 'Northeast' },
-
           { id: 'WA', name: 'Washington', col: 1, row: 1, region: 'West' },
           { id: 'ID', name: 'Idaho', col: 2, row: 1, region: 'West' },
           { id: 'MT', name: 'Montana', col: 3, row: 1, region: 'West' },
@@ -46,7 +40,6 @@
           { id: 'NY', name: 'New York', col: 9, row: 1, region: 'Northeast' },
           { id: 'VT', name: 'Vermont', col: 10, row: 1, region: 'Northeast' },
           { id: 'NH', name: 'New Hampshire', col: 11, row: 1, region: 'Northeast' },
-
           { id: 'OR', name: 'Oregon', col: 1, row: 2, region: 'West' },
           { id: 'NV', name: 'Nevada', col: 2, row: 2, region: 'West' },
           { id: 'WY', name: 'Wyoming', col: 3, row: 2, region: 'West' },
@@ -58,7 +51,6 @@
           { id: 'PA', name: 'Pennsylvania', col: 9, row: 2, region: 'Northeast' },
           { id: 'NJ', name: 'New Jersey', col: 10, row: 2, region: 'Northeast' },
           { id: 'MA', name: 'Massachusetts', col: 11, row: 2, region: 'Northeast' },
-
           { id: 'CA', name: 'California', col: 1, row: 3, region: 'West' },
           { id: 'UT', name: 'Utah', col: 2, row: 3, region: 'West' },
           { id: 'CO', name: 'Colorado', col: 3, row: 3, region: 'West' },
@@ -70,7 +62,6 @@
           { id: 'DE', name: 'Delaware', col: 9, row: 3, region: 'South' },
           { id: 'RI', name: 'Rhode Island', col: 10, row: 3, region: 'Northeast' },
           { id: 'CT', name: 'Connecticut', col: 11, row: 3, region: 'Northeast' },
-
           { id: 'AZ', name: 'Arizona', col: 2, row: 4, region: 'West' },
           { id: 'NM', name: 'New Mexico', col: 3, row: 4, region: 'West' },
           { id: 'KS', name: 'Kansas', col: 4, row: 4, region: 'Midwest' },
@@ -79,17 +70,14 @@
           { id: 'NC', name: 'North Carolina', col: 7, row: 4, region: 'South' },
           { id: 'SC', name: 'South Carolina', col: 8, row: 4, region: 'South' },
           { id: 'DC', name: 'District of Columbia', col: 9, row: 4, region: 'South' },
-
           { id: 'OK', name: 'Oklahoma', col: 4, row: 5, region: 'South' },
           { id: 'LA', name: 'Louisiana', col: 5, row: 5, region: 'South' },
           { id: 'MS', name: 'Mississippi', col: 6, row: 5, region: 'South' },
           { id: 'AL', name: 'Alabama', col: 7, row: 5, region: 'South' },
           { id: 'GA', name: 'Georgia', col: 8, row: 5, region: 'South' },
-
           { id: 'HI', name: 'Hawaii', col: 0, row: 6, region: 'West' },
           { id: 'TX', name: 'Texas', col: 4, row: 6, region: 'South' },
           { id: 'FL', name: 'Florida', col: 9, row: 6, region: 'South' },
-
           { id: 'PR', name: 'Puerto Rico', col: 13, row: 1, region: 'Territories' },
           { id: 'VI', name: 'US Virgin Is.', col: 13, row: 2, region: 'Territories' },
           { id: 'GU', name: 'Guam', col: 13, row: 3, region: 'Territories' },
@@ -98,728 +86,215 @@
         ];
 
         const PRESET_THEMES = {
-          runmap: {
-            name: "Runmap Premium",
-            background: "#0f172a",
-            unvisited: "#1e293b",
-            lived: "#8b5cf6",
-            visited: "#10b981",
-            want: "#f59e0b",
-            textVisited: "#ffffff",
-            textUnvisited: "#64748b"
-          },
-          emeraldSea: {
-            name: "Emerald Forest",
-            background: "#022c22",
-            unvisited: "#064e3b",
-            lived: "#34d399",
-            visited: "#059669",
-            want: "#a7f3d0",
-            textVisited: "#ffffff",
-            textUnvisited: "#047857"
-          },
-          neonCyber: {
-            name: "Cyber Grid",
-            background: "#000000",
-            unvisited: "#18181b",
-            lived: "#ec4899",
-            visited: "#06b6d4",
-            want: "#eab308",
-            textVisited: "#ffffff",
-            textUnvisited: "#52525b"
-          },
-          pastelSky: {
-            name: "Cotton Candy",
-            background: "#f8fafc",
-            unvisited: "#e2e8f0",
-            lived: "#c084fc",
-            visited: "#60a5fa",
-            want: "#fbcfe8",
-            textVisited: "#ffffff",
-            textUnvisited: "#94a3b8"
-          },
-          highContrast: {
-            name: "High Contrast",
-            background: "#ffffff",
-            unvisited: "#f3f4f6",
-            lived: "#000000",
-            visited: "#1d4ed8",
-            want: "#db2777",
-            textVisited: "#ffffff",
-            textUnvisited: "#9ca3af"
-          }
+          runmap: { name: "Runmap Premium", background: "#0f172a", unvisited: "#1e293b", lived: "#8b5cf6", visited: "#10b981", want: "#f59e0b", textVisited: "#ffffff", textUnvisited: "#64748b" },
+          emeraldSea: { name: "Emerald Forest", background: "#022c22", unvisited: "#064e3b", lived: "#34d399", visited: "#059669", want: "#a7f3d0", textVisited: "#ffffff", textUnvisited: "#047857" },
+          neonCyber: { name: "Cyber Grid", background: "#000000", unvisited: "#18181b", lived: "#ec4899", visited: "#06b6d4", want: "#eab308", textVisited: "#ffffff", textUnvisited: "#52525b" },
+          pastelSky: { name: "Cotton Candy", background: "#f8fafc", unvisited: "#e2e8f0", lived: "#c084fc", visited: "#60a5fa", want: "#fbcfe8", textVisited: "#ffffff", textUnvisited: "#94a3b8" },
+          highContrast: { name: "High Contrast", background: "#ffffff", unvisited: "#f3f4f6", lived: "#000000", visited: "#1d4ed8", want: "#db2777", textVisited: "#ffffff", textUnvisited: "#9ca3af" }
         };
 
         const COUNT_THEMES = {
-          ocean: {
-            name: "Deep Ocean Blues",
-            shades: ["#f1f5f9", "#93c5fd", "#3b82f6", "#1d4ed8", "#1e3a8a"]
-          },
-          sunset: {
-            name: "Volcanic Sunset",
-            shades: ["#fafaf9", "#fdba74", "#f97316", "#ea580c", "#7c2d12"]
-          },
-          viridian: {
-            name: "Viridian Greens",
-            shades: ["#f0fdf4", "#86efac", "#22c55e", "#15803d", "#14532d"]
-          },
-          berry: {
-            name: "Crimson Berry",
-            shades: ["#fff1f2", "#fda4af", "#f43f5e", "#be123c", "#4c0519"]
-          }
+          ocean: { name: "Deep Ocean Blues", shades: ["#f1f5f9", "#93c5fd", "#3b82f6", "#1d4ed8", "#1e3a8a"] },
+          sunset: { name: "Volcanic Sunset", shades: ["#fafaf9", "#fdba74", "#f97316", "#ea580c", "#7c2d12"] },
+          viridian: { name: "Viridian Greens", shades: ["#f0fdf4", "#86efac", "#22c55e", "#15803d", "#14532d"] },
+          berry: { name: "Crimson Berry", shades: ["#fff1f2", "#fda4af", "#f43f5e", "#be123c", "#4c0519"] }
         };
 
+        // MAIN APPLICATION FUNCTION
         function App() {
-          const [user, setUser] = useState(null);
-          const [loadingMap, setLoadingMap] = useState(false);
-          const [saveLoading, setSaveLoading] = useState(false);
-          const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
+            const [mapTitle, setMapTitle] = useState("MY US TRAVEL ADVENTURES");
+            const [mapSubtitle, setMapSubtitle] = useState("Interactive Statebins Tracker");
+            const [states, setStates] = useState({});
+            const [selectedStateId, setSelectedStateId] = useState("WA");
+            const [mapMode, setMapMode] = useState("status");
+            const [themeKey, setThemeKey] = useState("runmap");
+            const [countThemeKey, setCountThemeKey] = useState("ocean");
+            const [customColors, setCustomColors] = useState({ ...PRESET_THEMES.runmap });
+            const [cornerRadius, setCornerRadius] = useState(12);
+            const [tileGap, setTileGap] = useState(6);
+            const [showSublabel, setShowSublabel] = useState(true);
+            const [fontStyle, setFontStyle] = useState("sans");
+            const [tileShadow, setTileShadow] = useState(true);
+            const [paintTool, setPaintTool] = useState(null);
+            const [isDarkMode, setIsDarkMode] = useState(true);
+            const [searchQuery, setSearchQuery] = useState("");
+            const [regionFilter, setRegionFilter] = useState("all");
+            const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
 
-          const [mapTitle, setMapTitle] = useState("MY US TRAVEL ADVENTURES");
-          const [mapSubtitle, setMapSubtitle] = useState("Interactive Statebins Tracker");
-          const [states, setStates] = useState({});
-          const [selectedStateId, setSelectedStateId] = useState("WA");
-          const [mapMode, setMapMode] = useState("status");
-          
-          const [themeKey, setThemeKey] = useState("runmap");
-          const [countThemeKey, setCountThemeKey] = useState("ocean");
-          const [customColors, setCustomColors] = useState({ ...PRESET_THEMES.runmap });
-          const [cornerRadius, setCornerRadius] = useState(12);
-          const [tileGap, setTileGap] = useState(6);
-          const [showSublabel, setShowSublabel] = useState(true);
-          const [fontStyle, setFontStyle] = useState("sans");
-          const [tileShadow, setTileShadow] = useState(true);
-          
-          const [paintTool, setPaintTool] = useState(null);
-          const [isDarkMode, setIsDarkMode] = useState(true);
-          
-          const [searchQuery, setSearchQuery] = useState("");
-          const [regionFilter, setRegionFilter] = useState("all");
+            useEffect(() => {
+                const demoStates = {};
+                STATES_DATA.forEach(s => {
+                    demoStates[s.id] = {
+                        status: s.id === 'WA' || s.id === 'NY' ? 'lived' : 
+                                ['CA', 'OR', 'NV', 'AZ', 'UT', 'CO', 'TX', 'FL', 'IL', 'MA', 'PA', 'HI', 'PR'].includes(s.id) ? 'visited' :
+                                ['MT', 'WY', 'ME', 'AK', 'VI'].includes(s.id) ? 'want' : 'unvisited',
+                        count: s.id === 'WA' ? 12 : ['CA', 'NY', 'OR', 'TX', 'PR'].includes(s.id) ? 4 : ['NV', 'AZ', 'FL'].includes(s.id) ? 1 : 0,
+                        notes: s.id === 'WA' ? 'Lived here for 5 years.' : '',
+                        dateVisited: ''
+                    };
+                });
+                setStates(demoStates);
+            }, []);
 
-          useEffect(() => {
-            const demoStates = {};
-            STATES_DATA.forEach(s => {
-              demoStates[s.id] = {
-                status: s.id === 'WA' || s.id === 'NY' ? 'lived' : 
-                        ['CA', 'OR', 'NV', 'AZ', 'UT', 'CO', 'TX', 'FL', 'IL', 'MA', 'PA', 'HI', 'PR'].includes(s.id) ? 'visited' :
-                        ['MT', 'WY', 'ME', 'AK', 'VI'].includes(s.id) ? 'want' : 'unvisited',
-                count: s.id === 'WA' ? 12 : ['CA', 'NY', 'OR', 'TX', 'PR'].includes(s.id) ? 4 : ['NV', 'AZ', 'FL'].includes(s.id) ? 1 : 0,
-                notes: s.id === 'WA' ? 'Lived here for 5 years. Beautiful hiking trails.' : s.id === 'PR' ? 'Loved Old San Juan and El Yunque rain forest.' : '',
-                dateVisited: s.id === 'WA' ? '2021-06-15' : s.id === 'PR' ? '2023-02-10' : ''
-              };
-            });
-            setStates(demoStates);
-          }, []);
-
-          useEffect(() => {
-            if (themeKey !== "custom" && PRESET_THEMES[themeKey]) {
-              setCustomColors({ ...PRESET_THEMES[themeKey] });
-            }
-          }, [themeKey]);
-
-          const showToast = (message, type = 'info') => {
-            setToast({ show: true, message, type });
-            setTimeout(() => {
-              setToast(prev => ({ ...prev, show: false }));
-            }, 4000);
-          };
-
-          const handleStateClick = (stateId) => {
-            setSelectedStateId(stateId);
-            
-            if (paintTool) {
-              setStates(prev => {
-                const current = prev[stateId] || { status: 'unvisited', count: 0 };
-                let updated = { ...current };
-                if (mapMode === 'status') {
-                  updated.status = paintTool;
-                  if (paintTool === 'lived' && current.count === 0) updated.count = 5;
-                  if (paintTool === 'visited' && current.count === 0) updated.count = 1;
-                  if (paintTool === 'unvisited') updated.count = 0;
-                } else {
-                  if (paintTool === 'add') updated.count = current.count + 1;
-                  if (paintTool === 'subtract') updated.count = Math.max(0, current.count - 1);
-                  if (paintTool === 'clear') updated.count = 0;
-                  
-                  if (updated.count > 0 && current.status === 'unvisited') {
-                    updated.status = 'visited';
-                  } else if (updated.count === 0) {
-                    updated.status = 'unvisited';
-                  }
+            useEffect(() => {
+                if (themeKey !== "custom" && PRESET_THEMES[themeKey]) {
+                    setCustomColors({ ...PRESET_THEMES[themeKey] });
                 }
-                return { ...prev, [stateId]: updated };
-              });
-            }
-          };
+            }, [themeKey]);
 
-          const handleStatusChange = (status) => {
-            setStates(prev => {
-              const current = prev[selectedStateId] || { status: 'unvisited', count: 0 };
-              return {
-                ...prev,
-                [selectedStateId]: {
-                  ...current,
-                  status,
-                  count: status === 'lived' && current.count === 0 ? 5 : 
-                         status === 'visited' && current.count === 0 ? 1 : 
-                         status === 'unvisited' ? 0 : current.count
-                }
-              };
-            });
-          };
-
-          const handleCountChange = (count) => {
-            const safeCount = Math.max(0, parseInt(count) || 0);
-            setStates(prev => {
-              const current = prev[selectedStateId] || { status: 'unvisited', count: 0 };
-              return {
-                ...prev,
-                [selectedStateId]: {
-                  ...current,
-                  count: safeCount,
-                  status: safeCount > 0 && current.status === 'unvisited' ? 'visited' : 
-                          safeCount === 0 ? 'unvisited' : current.status
-                }
-              };
-            });
-          };
-
-          const handleNotesChange = (notes) => {
-            setStates(prev => {
-              const current = prev[selectedStateId] || { status: 'unvisited', count: 0 };
-              return { ...prev, [selectedStateId]: { ...current, notes } };
-            });
-          };
-
-          const handleDateChange = (dateVisited) => {
-            setStates(prev => {
-              const current = prev[selectedStateId] || { status: 'unvisited', count: 0 };
-              return { ...prev, [selectedStateId]: { ...current, dateVisited } };
-            });
-          };
-
-          const bulkAction = (action) => {
-            setStates(prev => {
-              const next = { ...prev };
-              STATES_DATA.forEach(s => {
-                if (regionFilter !== 'all' && s.region !== regionFilter) return;
-                
-                const current = next[s.id] || { status: 'unvisited', count: 0 };
-                if (action === 'all-visited') {
-                  next[s.id] = { ...current, status: 'visited', count: Math.max(1, current.count) };
-                } else if (action === 'all-unvisited') {
-                  next[s.id] = { ...current, status: 'unvisited', count: 0, dateVisited: '', notes: '' };
-                } else if (action === 'all-want') {
-                  next[s.id] = { ...current, status: 'want' };
-                }
-              });
-              return next;
-            });
-            showToast(`Bulk updates applied!`, "success");
-          };
-
-          const exportToSvg = () => {
-            const svgElement = document.getElementById('statebins-svg');
-            if (!svgElement) return;
-            const serializer = new XMLSerializer();
-            const svgString = serializer.serializeToString(svgElement);
-            const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-            const url = URL.createObjectURL(svgBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `${mapTitle.toLowerCase().replace(/\s+/g, '_') || 'travel_map'}.svg`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            showToast("Downloaded SVG successfully!", "success");
-          };
-
-          const exportToPng = () => {
-            const svgElement = document.getElementById('statebins-svg');
-            if (!svgElement) return;
-            const serializer = new XMLSerializer();
-            const svgString = serializer.serializeToString(svgElement);
-            const canvas = document.createElement('canvas');
-            const scale = 2;
-            canvas.width = 1400 * scale;
-            canvas.height = 850 * scale;
-            const ctx = canvas.getContext('2d');
-            ctx.scale(scale, scale);
-
-            const img = new Image();
-            const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-            const url = URL.createObjectURL(svgBlob);
-
-            img.onload = () => {
-              ctx.fillStyle = customColors.background;
-              ctx.fillRect(0, 0, 1400, 850);
-              ctx.drawImage(img, 0, 0, 1400, 850);
-              URL.revokeObjectURL(url);
-              try {
-                const pngUrl = canvas.toDataURL('image/png');
-                const link = document.createElement('a');
-                link.href = pngUrl;
-                link.download = `${mapTitle.toLowerCase().replace(/\s+/g, '_') || 'travel_map'}.png`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                showToast("Downloaded PNG successfully!", "success");
-              } catch (err) {
-                showToast("PNG blocked by local sandbox restrictions. Please download as SVG instead.", "error");
-              }
+            const showToast = (message) => {
+                setToast({ show: true, message });
+                setTimeout(() => setToast({ show: false, message: '' }), 3000);
             };
-            img.src = url;
-          };
 
-          const getStateColor = (stateId) => {
-            const sInfo = states[stateId] || { status: 'unvisited', count: 0 };
-            if (mapMode === 'status') {
-              return customColors[sInfo.status] || customColors.unvisited;
-            } else {
-              const count = sInfo.count || 0;
-              const palette = COUNT_THEMES[countThemeKey]?.shades || COUNT_THEMES.ocean.shades;
-              if (count === 0) return customColors.unvisited;
-              if (count <= 2) return palette[1];
-              if (count <= 5) return palette[2];
-              if (count <= 10) return palette[3];
-              return palette[4];
-            }
-          };
+            const handleStateClick = (stateId) => {
+                setSelectedStateId(stateId);
+                if (paintTool) {
+                    setStates(prev => {
+                        const current = prev[stateId] || { status: 'unvisited', count: 0 };
+                        let updated = { ...current };
+                        if (mapMode === 'status') {
+                            updated.status = paintTool;
+                        } else {
+                            if (paintTool === 'add') updated.count = current.count + 1;
+                            if (paintTool === 'subtract') updated.count = Math.max(0, current.count - 1);
+                            if (paintTool === 'clear') updated.count = 0;
+                        }
+                        return { ...prev, [stateId]: updated };
+                    });
+                }
+            };
 
-          const getTextColor = (stateId) => {
-            const sInfo = states[stateId] || { status: 'unvisited', count: 0 };
-            if (mapMode === 'status') {
-              return sInfo.status === 'unvisited' ? customColors.textUnvisited : customColors.textVisited;
-            } else {
-              return sInfo.count === 0 ? customColors.textUnvisited : "#ffffff";
-            }
-          };
+            const handleStatusChange = (status) => {
+                setStates(prev => ({ ...prev, [selectedStateId]: { ...prev[selectedStateId], status } }));
+            };
 
-          const totalLived = STATES_DATA.filter(s => states[s.id]?.status === 'lived').length;
-          const totalVisited = STATES_DATA.filter(s => states[s.id]?.status === 'visited').length;
-          const totalWant = STATES_DATA.filter(s => states[s.id]?.status === 'want').length;
-          const totalStatesTracked = STATES_DATA.filter(s => ['lived', 'visited'].includes(states[s.id]?.status)).length;
-          const totalTerritoriesAndStates = STATES_DATA.length; 
-          const percentageCompleted = Math.round((totalStatesTracked / totalTerritoriesAndStates) * 100);
+            const handleCountChange = (count) => {
+                setStates(prev => ({ ...prev, [selectedStateId]: { ...prev[selectedStateId], count: Math.max(0, parseInt(count) || 0) } }));
+            };
 
-          const getRegionCount = (regionName) => {
-            const total = STATES_DATA.filter(s => s.region === regionName).length;
-            const visited = STATES_DATA.filter(s => s.region === regionName && ['lived', 'visited'].includes(states[s.id]?.status)).length;
-            return { visited, total };
-          };
+            const bulkAction = (action) => {
+                setStates(prev => {
+                    const next = { ...prev };
+                    STATES_DATA.forEach(s => {
+                        if (regionFilter !== 'all' && s.region !== regionFilter) return;
+                        if (action === 'all-visited') next[s.id] = { ...next[s.id], status: 'visited', count: 1 };
+                        if (action === 'all-unvisited') next[s.id] = { ...next[s.id], status: 'unvisited', count: 0 };
+                    });
+                    return next;
+                });
+                showToast("Bulk updates applied!");
+            };
 
-          const achievements = [
-            {
-              id: 'coastal',
-              name: 'Coastal Collector',
-              desc: 'Lived or traveled to California (CA) & New York (NY)',
-              achieved: ['lived', 'visited'].includes(states['CA']?.status) && ['lived', 'visited'].includes(states['NY']?.status)
-            },
-            {
-              id: 'fourcorners',
-              name: 'Four Corners Club',
-              desc: 'Traveled to UT, CO, AZ & NM',
-              achieved: ['UT', 'CO', 'AZ', 'NM'].every(id => ['lived', 'visited'].includes(states[id]?.status))
-            },
-            {
-              id: 'islands',
-              name: 'Island Hopper',
-              desc: 'Visited at least 2 Caribbean or Pacific US territories',
-              achieved: STATES_DATA.filter(s => s.region === 'Territories' && ['lived', 'visited'].includes(states[s.id]?.status)).length >= 2
-            },
-            {
-              id: 'pacific',
-              name: 'Pacific Pioneer',
-              desc: 'Traveled to Hawaii, Alaska, Oregon & Washington',
-              achieved: ['HI', 'AK', 'OR', 'WA'].every(id => ['lived', 'visited'].includes(states[id]?.status))
-            }
-          ];
+            const getStateColor = (stateId) => {
+                const sInfo = states[stateId] || { status: 'unvisited', count: 0 };
+                if (mapMode === 'status') return customColors[sInfo.status] || customColors.unvisited;
+                if (sInfo.count === 0) return customColors.unvisited;
+                const palette = COUNT_THEMES[countThemeKey]?.shades || COUNT_THEMES.ocean.shades;
+                return sInfo.count <= 2 ? palette[1] : sInfo.count <= 5 ? palette[2] : palette[4];
+            };
 
-          const activeStateObj = STATES_DATA.find(s => s.id === selectedStateId);
-          const activeStateRecord = states[selectedStateId] || { status: 'unvisited', count: 0, notes: '', dateVisited: '' };
+            const getTextColor = (stateId) => {
+                const sInfo = states[stateId] || { status: 'unvisited', count: 0 };
+                return sInfo.status === 'unvisited' && mapMode === 'status' ? customColors.textUnvisited : customColors.textVisited;
+            };
 
-          const filteredStatesChecklist = STATES_DATA.filter(s => {
-            const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.id.toLowerCase().includes(searchQuery.toLowerCase());
-            const matchesRegion = regionFilter === 'all' || s.region === regionFilter;
-            return matchesSearch && matchesRegion;
-          });
+            const totalLived = STATES_DATA.filter(s => states[s.id]?.status === 'lived').length;
+            const totalVisited = STATES_DATA.filter(s => states[s.id]?.status === 'visited').length;
+            const totalWant = STATES_DATA.filter(s => states[s.id]?.status === 'want').length;
 
-          return (
-            <div className={`min-h-screen font-sans transition-colors duration-300 ${isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
-              
-              {toast.show && (
-                <div className="fixed bottom-6 right-6 z-50 animate-bounce flex items-center gap-3 px-5 py-4 rounded-xl shadow-2xl bg-indigo-600 text-white border border-indigo-400">
-                  <Sparkles size={20} className="animate-spin text-amber-300" />
-                  <span className="font-semibold text-sm">{toast.message}</span>
-                </div>
-              )}
+            const activeStateObj = STATES_DATA.find(s => s.id === selectedStateId);
+            const activeStateRecord = states[selectedStateId] || { status: 'unvisited', count: 0, notes: '' };
 
-              <header className={`border-b ${isDarkMode ? 'border-slate-800 bg-slate-900/60' : 'border-slate-200 bg-white/80'} backdrop-blur-md sticky top-0 z-40 px-6 py-4`}>
-                <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-gradient-to-tr from-indigo-500 to-emerald-400 rounded-xl text-white shadow-lg">
-                      <Globe size={28} className="animate-pulse" />
-                    </div>
-                    <div>
-                      <h1 className="text-2xl font-black tracking-tight bg-gradient-to-r from-indigo-400 via-purple-400 to-emerald-400 bg-clip-text text-transparent">
-                        Interactive Been Map for the United States
-                      </h1>
-                      <p className="text-xs text-slate-400 font-medium">Create maps with standard US states and island territories</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center p-1 rounded-xl border bg-slate-950 border-slate-800">
-                    <button
-                      onClick={() => setMapMode('status')}
-                      className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition-all ${
-                        mapMode === 'status' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'
-                      }`}
-                    >
-                      <Grid size={14} />
-                      Travel Categories
-                    </button>
-                    <button
-                      onClick={() => setMapMode('count')}
-                      className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition-all ${
-                        mapMode === 'count' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'
-                      }`}
-                    >
-                      <Sliders size={14} />
-                      Activity Counts
-                    </button>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setIsDarkMode(!isDarkMode)}
-                      className={`p-2.5 rounded-xl border transition-all ${
-                        isDarkMode ? 'border-slate-800 bg-slate-900 text-yellow-400' : 'border-slate-200 bg-white text-slate-700'
-                      }`}
-                    >
-                      {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-                    </button>
-
-                    <div className="relative group">
-                      <button className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border bg-slate-900 border-slate-800 font-bold text-sm">
-                        <Download size={16} />
-                        Export Map File
-                      </button>
-                      <div className="absolute right-0 top-full mt-2 w-48 rounded-xl shadow-xl border border-slate-800 bg-slate-900 p-2 hidden group-hover:block z-50">
-                        <button
-                          onClick={exportToPng}
-                          className="w-full text-left px-4 py-2.5 text-xs font-semibold text-slate-200 rounded-lg hover:bg-slate-800 flex items-center gap-2"
-                        >
-                          <Grid size={14} className="text-emerald-400" />
-                          Save Image (PNG)
-                        </button>
-                        <button
-                          onClick={exportToSvg}
-                          className="w-full text-left px-4 py-2.5 text-xs font-semibold text-slate-200 rounded-lg hover:bg-slate-800 flex items-center gap-2"
-                        >
-                          <Sliders size={14} className="text-indigo-400" />
-                          Vector file (SVG)
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </header>
-
-              <main className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
-                
-                <section className="lg:col-span-4 flex flex-col gap-6">
-                  
-                  <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
-                    <div className="flex items-center gap-2 mb-4">
-                      <Edit3 size={18} className="text-indigo-400" />
-                      <h2 className="font-bold text-base">Map Branding</h2>
-                    </div>
-                    <div className="flex flex-col gap-3">
-                      <div>
-                        <label className="text-xs text-slate-400 font-semibold mb-1 block">Map Title</label>
-                        <input
-                          type="text"
-                          value={mapTitle}
-                          onChange={(e) => setMapTitle(e.target.value.toUpperCase())}
-                          className="w-full text-sm px-3.5 py-2 rounded-xl border bg-slate-950 border-slate-800 text-white"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs text-slate-400 font-semibold mb-1 block">Map Subtitle</label>
-                        <input
-                          type="text"
-                          value={mapSubtitle}
-                          onChange={(e) => setMapSubtitle(e.target.value)}
-                          className="w-full text-sm px-3.5 py-2 rounded-xl border bg-slate-950 border-slate-800 text-white"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
-                    <div className="flex items-center gap-2 mb-4">
-                      <Sliders size={18} className="text-emerald-400" />
-                      <h2 className="font-bold text-base">Tile Layout & Theme</h2>
-                    </div>
-
-                    {mapMode === 'status' ? (
-                      <div className="mb-6">
-                        <span className="text-xs text-slate-400 font-semibold block mb-2.5">Preset Theme Colorways</span>
-                        <div className="grid grid-cols-2 gap-2">
-                          {Object.entries(PRESET_THEMES).map(([key, t]) => (
-                            <button
-                              key={key}
-                              onClick={() => setThemeKey(key)}
-                              className={`px-3 py-2 text-left rounded-xl border text-xs font-bold flex items-center justify-between transition-all ${
-                                themeKey === key ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400' : 'border-slate-800 bg-slate-950'
-                              }`}
-                            >
-                              {t.name}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="mb-6">
-                        <span className="text-xs text-slate-400 font-semibold block mb-2.5">Gradient Presets</span>
-                        <div className="grid grid-cols-2 gap-2">
-                          {Object.entries(COUNT_THEMES).map(([key, value]) => (
-                            <button
-                              key={key}
-                              onClick={() => setCountThemeKey(key)}
-                              className={`px-3 py-2 text-left rounded-xl border text-xs font-bold transition-all ${
-                                countThemeKey === key ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400' : 'border-slate-800 bg-slate-950'
-                              }`}
-                            >
-                              {value.name}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="space-y-4 pt-4 border-t border-slate-800">
-                      <div>
-                        <span className="text-xs text-slate-400 block mb-1">Corner Radius ({cornerRadius}px)</span>
-                        <input type="range" min="0" max="45" value={cornerRadius} onChange={(e) => setCornerRadius(parseInt(e.target.value))} className="w-full" />
-                      </div>
-                      <div>
-                        <span className="text-xs text-slate-400 block mb-1">Tile Spacing ({tileGap}px)</span>
-                        <input type="range" min="0" max="16" value={tileGap} onChange={(e) => setTileGap(parseInt(e.target.value))} className="w-full" />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
-                    <div className="flex items-center justify-between mb-4">
-                      <h2 className="font-bold text-base flex items-center gap-2">
-                        <Sparkles size={18} className="text-amber-400 animate-bounce" /> Quick-Paint
-                      </h2>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button onClick={() => setPaintTool('lived')} className="px-3 py-2 text-xs font-bold rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-800">Lived In</button>
-                      <button onClick={() => setPaintTool('visited')} className="px-3 py-2 text-xs font-bold rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-800">Visited</button>
-                      <button onClick={() => setPaintTool('want')} className="px-3 py-2 text-xs font-bold rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-800">Want to Visit</button>
-                      <button onClick={() => setPaintTool('unvisited')} className="px-3 py-2 text-xs font-bold rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-800">Clear</button>
-                    </div>
-                  </div>
-
-                </section>
-
-                <section className="lg:col-span-8 flex flex-col gap-6">
-                  
-                  <div className={`p-6 rounded-3xl border shadow-xl relative ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white'}`}>
+            return (
+                <div className={`min-h-screen p-6 ${isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
+                    {toast.show && <div className="fixed bottom-4 right-4 bg-indigo-600 text-white px-4 py-2 rounded-xl z-50 text-xs font-bold">{toast.message}</div>}
                     
-                    <div className="w-full h-auto overflow-x-auto select-none">
-                      <svg id="statebins-svg" viewBox="0 0 1400 850" className="w-full h-auto max-w-full drop-shadow-lg">
-                        {tileShadow && (
-                          <defs>
-                            <filter id="drop-shadow" x="-8%" y="-8%" width="120%" height="120%">
-                              <feDropShadow dx="1" dy="3" stdDeviation="2.5" floodOpacity={isDarkMode ? "0.3" : "0.15"} />
-                            </filter>
-                          </defs>
-                        )}
-
-                        <rect width="1400" height="850" fill={customColors.background} rx="24" />
-
-                        <text x="700" y="55" textAnchor="middle" fill={isDarkMode ? "#ffffff" : "#0f172a"} fontWeight="900" fontSize="36">{mapTitle}</text>
-                        {mapSubtitle && <text x="700" y="90" textAnchor="middle" fill={isDarkMode ? "#94a3b8" : "#475569"} fontWeight="600" fontSize="16">{mapSubtitle}</text>}
-
-                        <line x1="1237" y1="120" x2="1237" y2="750" stroke={isDarkMode ? "#334155" : "#cbd5e1"} strokeWidth="2.5" strokeDasharray="6,4" />
-                        <text x="1335" y="160" textAnchor="middle" fill={isDarkMode ? "#94a3b8" : "#475569"} fontWeight="900" fontSize="12" letterSpacing="2px">TERRITORIES</text>
-
-                        {STATES_DATA.map(state => {
-                          const stateColor = getStateColor(state.id);
-                          const textColor = getTextColor(state.id);
-                          
-                          const x = 12 + state.col * 98;
-                          const y = 120 + state.row * 92;
-                          const width = 98 - tileGap;
-                          const height = 92 - tileGap;
-                          
-                          const isSelected = selectedStateId === state.id;
-
-                          return (
-                            <g key={state.id} onClick={() => handleStateClick(state.id)} className="cursor-pointer">
-                              <rect
-                                x={x + tileGap / 2}
-                                y={y + tileGap / 2}
-                                width={width}
-                                height={height}
-                                rx={cornerRadius}
-                                ry={cornerRadius}
-                                fill={stateColor}
-                                stroke={isSelected ? (isDarkMode ? "#ffffff" : "#4f46e5") : "none"}
-                                strokeWidth={isSelected ? "3" : "0"}
-                                filter={tileShadow ? "url(#drop-shadow)" : "none"}
-                              />
-
-                              <text x={x + 49} y={y + (showSublabel ? 42 : 55)} textAnchor="middle" fontWeight="900" fontSize={showSublabel ? "26" : "32"} fill={textColor}>
-                                {state.id}
-                              </text>
-
-                              {showSublabel && (
-                                <text x={x + 49} y={y + 68} textAnchor="middle" fontSize="10" fontWeight="700" fill={textColor} opacity="0.8">
-                                  {mapMode === 'count' ? `${states[state.id]?.count || 0} Trips` : state.name}
-                                </text>
-                              )}
-                            </g>
-                          );
-                        })}
-
-                        {mapMode === 'status' ? (
-                          <g transform="translate(250, 790)">
-                            <g transform="translate(0, 0)">
-                              <rect width="25" height="25" rx="5" fill={customColors.unvisited} />
-                              <text x="35" y="17" fill={isDarkMode ? "#94a3b8" : "#475569"} fontSize="14" fontWeight="bold">Unvisited</text>
-                            </g>
-                            <g transform="translate(200, 0)">
-                              <rect width="25" height="25" rx="5" fill={customColors.want} />
-                              <text x="35" y="17" fill={isDarkMode ? "#94a3b8" : "#475569"} fontSize="14" fontWeight="bold">Want to Visit</text>
-                            </g>
-                            <g transform="translate(430, 0)">
-                              <rect width="25" height="25" rx="5" fill={customColors.visited} />
-                              <text x="35" y="17" fill={isDarkMode ? "#94a3b8" : "#475569"} fontSize="14" fontWeight="bold">Visited</text>
-                            </g>
-                            <g transform="translate(630, 0)">
-                              <rect width="25" height="25" rx="5" fill={customColors.lived} />
-                              <text x="35" y="17" fill={isDarkMode ? "#94a3b8" : "#475569"} fontSize="14" fontWeight="bold">Lived In</text>
-                            </g>
-                          </g>
-                        ) : (
-                          <g transform="translate(320, 790)">
-                            <text x="-15" y="17" fill={isDarkMode ? "#94a3b8" : "#475569"} fontSize="14" fontWeight="bold" textAnchor="end">0 trips</text>
-                            <rect x="0" y="2" width="40" height="20" rx="4" fill={customColors.unvisited} />
-                            <g transform="translate(50, 0)">
-                              <rect x="0" y="2" width="120" height="20" rx="4" fill="url(#gradient-legend-shades)" />
-                              <text x="60" y="38" fill={isDarkMode ? "#94a3b8" : "#475569"} fontSize="11" fontWeight="bold" textAnchor="middle">Trip Scale</text>
-                              <defs>
-                                <linearGradient id="gradient-legend-shades" x1="0%" y1="0%" x2="100%" y2="0%">
-                                  <stop offset="0%" stopColor={COUNT_THEMES[countThemeKey]?.shades[1]} />
-                                  <stop offset="50%" stopColor={COUNT_THEMES[countThemeKey]?.shades[2]} />
-                                  <stop offset="100%" stopColor={COUNT_THEMES[countThemeKey]?.shades[4]} />
-                                </linearGradient>
-                              </defs>
-                            </g>
-                            <text x="185" y="17" fill={isDarkMode ? "#94a3b8" : "#475569"} fontSize="14" fontWeight="bold">10+ trips</text>
-                          </g>
-                        )}
-                      </svg>
-                    </div>
-
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="p-5 rounded-2xl border border-slate-800 bg-slate-900">
-                      <span className="text-[10px] uppercase text-slate-400 block font-bold">Lived In</span>
-                      <span className="text-2xl font-black">{totalLived} places</span>
-                    </div>
-                    <div className="p-5 rounded-2xl border border-slate-800 bg-slate-900">
-                      <span className="text-[10px] uppercase text-slate-400 block font-bold">Visited</span>
-                      <span className="text-2xl font-black">{totalVisited} places</span>
-                    </div>
-                    <div className="p-5 rounded-2xl border border-slate-800 bg-slate-900">
-                      <span className="text-[10px] uppercase text-slate-400 block font-bold">Want to Visit</span>
-                      <span className="text-2xl font-black">{totalWant} places</span>
-                    </div>
-                    <div className="p-5 rounded-2xl border border-slate-800 bg-slate-900">
-                      <span className="text-[10px] uppercase text-slate-400 block mb-1">Completion</span>
-                      <div className="w-full bg-slate-800 rounded-full h-3.5 overflow-hidden">
-                        <div className="bg-indigo-500 h-full" style={{ width: `${percentageCompleted}%` }} />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
-                      <h3 className="font-extrabold text-base mb-4">{activeStateObj?.name} Journal</h3>
-                      <div className="space-y-3">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <span className="text-xs text-slate-400 font-semibold block mb-1.5">Trip Count</span>
-                            <input type="number" value={activeStateRecord.count || 0} onChange={(e) => handleCountChange(e.target.value)} className="w-full bg-slate-950 border-slate-800 text-center rounded-lg text-xs py-1 text-white" />
-                          </div>
-                          <div>
-                            <span className="text-xs text-slate-400 font-semibold block mb-1.5">Date</span>
-                            <input type="date" value={activeStateRecord.dateVisited || ""} onChange={(e) => handleDateChange(e.target.value)} className="w-full bg-slate-950 border-slate-800 text-center rounded-lg text-xs py-1 text-white" />
-                          </div>
+                    <header className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+                        <div>
+                          <h1 className="text-xl font-black tracking-tight bg-gradient-to-r from-indigo-400 to-emerald-400 bg-clip-text text-transparent">Interactive Been Map for the United States</h1>
+                          <p className="text-xs text-slate-400">Interactive Side-Dock Grid Map</p>
                         </div>
-                        <textarea rows="2" value={activeStateRecord.notes || ""} onChange={(e) => handleNotesChange(e.target.value)} placeholder="Add memories..." className="w-full text-xs p-2 rounded-xl bg-slate-950 border-slate-800 text-white" />
-                      </div>
-                    </div>
+                        <div className="flex gap-2">
+                          <button onClick={() => setMapMode(mapMode === 'status' ? 'count' : 'status')} className="text-xs font-bold bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">Mode: {mapMode.toUpperCase()}</button>
+                          <button onClick={() => setIsDarkMode(!isDarkMode)} className="text-xs font-bold bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">{isDarkMode ? 'Light Mode' : 'Dark Mode'}</button>
+                        </div>
+                    </header>
 
-                    <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
-                      <h3 className="font-bold text-base mb-2">Travel Achievements</h3>
-                      <div className="space-y-2">
-                        {achievements.map(ach => (
-                          <div key={ach.id} className="text-xs flex gap-2">
-                            <span className={ach.achieved ? "text-emerald-400" : "text-slate-600"}>✔</span>
-                            <div>
-                              <p className="font-bold">{ach.name}</p>
-                              <p className="text-[10px] text-slate-400">{ach.desc}</p>
+                    <main className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        {/* CONTROLS */}
+                        <div className="lg:col-span-4 space-y-6">
+                            <div className="p-4 bg-slate-900/60 rounded-2xl border border-slate-800 space-y-3">
+                                <h2 className="text-xs font-black uppercase tracking-wider text-slate-400">Active Node Control</h2>
+                                <div className="text-sm font-bold text-indigo-400">{activeStateObj?.name} ({activeStateObj?.id})</div>
+                                <div className="grid grid-cols-2 gap-1">
+                                    {['lived', 'visited', 'want', 'unvisited'].map(st => (
+                                        <button key={st} onClick={() => handleStatusChange(st)} className={`text-[10px] uppercase p-2 font-bold rounded-lg border ${activeStateRecord.status === st ? 'bg-indigo-600 border-indigo-500' : 'bg-slate-950 border-slate-800'}`}>{st}</button>
+                                    ))}
+                                </div>
+                                <div className="pt-2">
+                                    <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Trip Count</label>
+                                    <input type="number" value={activeStateRecord.count || 0} onChange={(e) => handleCountChange(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-xs text-center font-bold" />
+                                </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
 
-                  <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
-                    <div className="flex gap-4 mb-4">
-                      <input type="text" placeholder="Search..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-slate-950 border-slate-800 rounded-lg text-xs p-2 text-white" />
-                      <select value={regionFilter} onChange={(e) => setRegionFilter(e.target.value)} className="bg-slate-950 border-slate-800 text-white text-xs rounded-lg p-2">
-                        <option value="all">All Regions</option>
-                        <option value="West">West Coast</option>
-                        <option value="Midwest">Midwest</option>
-                        <option value="South">The South</option>
-                        <option value="Northeast">Northeast</option>
-                        <option value="Territories">Territories</option>
-                      </select>
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-40 overflow-y-auto">
-                      {filteredStatesChecklist.map(s => (
-                        <div key={s.id} onClick={() => setSelectedStateId(s.id)} className="p-2 border border-slate-800 bg-slate-950/40 rounded-lg cursor-pointer flex justify-between text-xs">
-                          <span>{s.name}</span>
-                          <span className="font-black">{s.id}</span>
+                            <div className="p-4 bg-slate-900/60 rounded-2xl border border-slate-800 space-y-3">
+                                <h2 className="text-xs font-black uppercase tracking-wider text-slate-400">Quick Paint Brush</h2>
+                                <div className="grid grid-cols-2 gap-1">
+                                    {['lived', 'visited', 'want', 'unvisited'].map(st => (
+                                        <button key={st} onClick={() => setPaintTool(paintTool === st ? null : st)} className={`text-[10px] uppercase p-2 font-bold rounded-lg border ${paintTool === st ? 'bg-emerald-600 border-emerald-500 text-white' : 'bg-slate-950 border-slate-800 text-slate-400'}`}>{st}</button>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
-                      ))}
-                    </div>
-                  </div>
 
-                </section>
+                        {/* GRAPHIC SVG CANVASES */}
+                        <div className="lg:col-span-8 space-y-4">
+                            <div className="bg-slate-900 border border-slate-800 p-4 rounded-3xl overflow-x-auto">
+                                <svg id="statebins-svg" viewBox="0 0 1400 850" className="w-full h-auto">
+                                    <rect width="1400" height="850" fill={customColors.background} rx="20" />
+                                    <text x="700" y="55" textAnchor="middle" fill="#ffffff" fontWeight="900" fontSize="32">{mapTitle}</text>
+                                    
+                                    <line x1="1237" y1="120" x2="1237" y2="720" stroke="#334155" strokeWidth="2.5" strokeDasharray="6,4" />
+                                    <text x="1315" y="150" textAnchor="middle" fill="#64748b" fontWeight="900" fontSize="11" letterSpacing="2">TERRITORIES</text>
 
-              </main>
+                                    {STATES_DATA.map(state => {
+                                        const stateColor = getStateColor(state.id);
+                                        const textColor = getTextColor(state.id);
+                                        const x = 12 + state.col * 98;
+                                        const y = 120 + state.row * 92;
+                                        const isSelected = selectedStateId === state.id;
 
-              <footer className="border-t border-slate-800 py-6 text-center text-xs text-slate-500">
-                <p>Interactive Been Map for the United States &copy; 2026.</p>
-              </footer>
+                                        return (
+                                            <g key={state.id} onClick={() => handleStateClick(state.id)} className="cursor-pointer">
+                                                <rect x={x + tileGap/2} y={y + tileGap/2} width={98 - tileGap} height={92 - tileGap} rx={cornerRadius} fill={stateColor} stroke={isSelected ? "#ffffff" : "none"} strokeWidth={isSelected ? "3" : "0"} />
+                                                <text x={x + 49} y={y + 42} textAnchor="middle" fontWeight="900" fontSize="24" fill={textColor}>{state.id}</text>
+                                                {showSublabel && (
+                                                    <text x={x + 49} y={y + 66} textAnchor="middle" fontSize="10" fontWeight="700" fill={textColor} opacity="0.7">
+                                                        {mapMode === 'count' ? `${states[state.id]?.count || 0} Tr.` : state.name.substring(0,9)}
+                                                    </text>
+                                                )}
+                                            </g>
+                                        );
+                                    })}
+                                </svg>
+                            </div>
 
-            </div>
-          );
+                            {/* SMALL SCOREBOARD */}
+                            <div className="grid grid-cols-3 gap-2">
+                                <div className="bg-slate-900/40 p-3 rounded-xl border border-slate-800 text-center"><span className="text-[10px] block font-bold text-slate-500">LIVED IN</span><span className="text-lg font-black">{totalLived}</span></div>
+                                <div className="bg-slate-900/40 p-3 rounded-xl border border-slate-800 text-center"><span className="text-[10px] block font-bold text-slate-500">VISITED</span><span className="text-lg font-black">{totalVisited}</span></div>
+                                <div className="bg-slate-900/40 p-3 rounded-xl border border-slate-800 text-center"><span className="text-[10px] block font-bold text-slate-500">WANT TO VISIT</span><span className="text-lg font-black">{totalWant}</span></div>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            );
         }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
+        // MOUNT APPARATUS DIRECTLY (Ensures no scoping mismatch crashes root rendering loop)
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
         root.render(<App />);
     </script>
 </body>
