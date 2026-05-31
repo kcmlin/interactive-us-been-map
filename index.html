@@ -4,29 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Been Map for the United States</title>
+    <!-- Tailwind CSS Engine -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <!-- React 18 Core Engines -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <!-- Live Browser Babel Transpiler -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/lucide-react@latest"></script>
+    <!-- Production Compiled UMD CDN wrapper for Lucide Icons -->
+    <script src="https://unpkg.com/lucide-react@latest/dist/umd/lucide-react.min.js"></script>
 </head>
 <body class="bg-slate-950 text-slate-100">
     <div id="root"></div>
 
     <script type="text/babel">
-        // Fetch React hooks globally so you don't need 'import' statements
+        // Safe context extractions
         const { useState, useEffect, useRef } = React;
 
-        // Fetch Lucide Icons safely from the React variant
+        // FIXED GLOBAL SCOPE VARIABLE: Mapped directly to Capitalized "LucideReact"
         const { 
           Download, Share2, Sparkles, MapPin, Sliders, Calendar, Edit3, Filter, 
           CheckCircle2, Grid, Trash2, Settings, Plus, Minus, Info, Lock, 
           Unlock, BookOpen, Heart, Globe, Award, Search, Check, Copy, 
           ChevronRight, RefreshCw, Sun, Moon 
-        } = lucideReact;
+        } = LucideReact;
 
-        // Static configuration defaults
         const STATES_DATA = [
           { id: 'AK', name: 'Alaska', col: 0, row: 0, region: 'West' },
           { id: 'ME', name: 'Maine', col: 11, row: 0, region: 'Northeast' },
@@ -100,7 +103,6 @@
           berry: { name: "Crimson Berry", shades: ["#fff1f2", "#fda4af", "#f43f5e", "#be123c", "#4c0519"] }
         };
 
-        // MAIN APPLICATION FUNCTION
         function App() {
             const [mapTitle, setMapTitle] = useState("MY US TRAVEL ADVENTURES");
             const [mapSubtitle, setMapSubtitle] = useState("Interactive Statebins Tracker");
@@ -206,56 +208,63 @@
             const activeStateObj = STATES_DATA.find(s => s.id === selectedStateId);
             const activeStateRecord = states[selectedStateId] || { status: 'unvisited', count: 0, notes: '' };
 
+            const filteredStatesChecklist = STATES_DATA.filter(s => {
+                const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.id.toLowerCase().includes(searchQuery.toLowerCase());
+                const matchesRegion = regionFilter === 'all' || s.region === regionFilter;
+                return matchesSearch && matchesRegion;
+            });
+
             return (
                 <div className={`min-h-screen p-6 ${isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
                     {toast.show && <div className="fixed bottom-4 right-4 bg-indigo-600 text-white px-4 py-2 rounded-xl z-50 text-xs font-bold">{toast.message}</div>}
                     
-                    <header className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+                    <header className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 border-b border-slate-800 pb-4">
                         <div>
-                          <h1 className="text-xl font-black tracking-tight bg-gradient-to-r from-indigo-400 to-emerald-400 bg-clip-text text-transparent">Interactive Been Map for the United States</h1>
+                          <h1 className="text-2xl font-black tracking-tight bg-gradient-to-r from-indigo-400 to-emerald-400 bg-clip-text text-transparent">Interactive Been Map for the United States</h1>
                           <p className="text-xs text-slate-400">Interactive Side-Dock Grid Map</p>
                         </div>
                         <div className="flex gap-2">
-                          <button onClick={() => setMapMode(mapMode === 'status' ? 'count' : 'status')} className="text-xs font-bold bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">Mode: {mapMode.toUpperCase()}</button>
-                          <button onClick={() => setIsDarkMode(!isDarkMode)} className="text-xs font-bold bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">{isDarkMode ? 'Light Mode' : 'Dark Mode'}</button>
+                          <button onClick={() => setMapMode(mapMode === 'status' ? 'count' : 'status')} className="text-xs font-bold bg-slate-850 hover:bg-slate-800 text-slate-200 px-4 py-2 rounded-xl border border-slate-800 transition-all">Mode: {mapMode.toUpperCase()}</button>
+                          <button onClick={() => setIsDarkMode(!isDarkMode)} className="text-xs font-bold bg-slate-850 hover:bg-slate-800 text-slate-200 px-4 py-2 rounded-xl border border-slate-800 transition-all">{isDarkMode ? '⛅ Light Mode' : '🌙 Dark Mode'}</button>
                         </div>
                     </header>
 
                     <main className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
                         {/* CONTROLS */}
                         <div className="lg:col-span-4 space-y-6">
-                            <div className="p-4 bg-slate-900/60 rounded-2xl border border-slate-800 space-y-3">
-                                <h2 className="text-xs font-black uppercase tracking-wider text-slate-400">Active Node Control</h2>
-                                <div className="text-sm font-bold text-indigo-400">{activeStateObj?.name} ({activeStateObj?.id})</div>
-                                <div className="grid grid-cols-2 gap-1">
+                            <div className="p-5 bg-slate-900/80 rounded-2xl border border-slate-800 space-y-4 shadow-xl">
+                                <h2 className="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">🎯 Active Node Control</h2>
+                                <div className="text-base font-extrabold text-indigo-400 bg-indigo-950/40 p-2 rounded-xl border border-indigo-900/30 text-center">{activeStateObj?.name} ({activeStateObj?.id})</div>
+                                <div className="grid grid-cols-2 gap-1.5">
                                     {['lived', 'visited', 'want', 'unvisited'].map(st => (
-                                        <button key={st} onClick={() => handleStatusChange(st)} className={`text-[10px] uppercase p-2 font-bold rounded-lg border ${activeStateRecord.status === st ? 'bg-indigo-600 border-indigo-500' : 'bg-slate-950 border-slate-800'}`}>{st}</button>
+                                        <button key={st} onClick={() => handleStatusChange(st)} className={`text-[10px] tracking-wider uppercase py-2.5 font-bold rounded-xl border transition-all ${activeStateRecord.status === st ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg' : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'}`}>{st}</button>
                                     ))}
                                 </div>
                                 <div className="pt-2">
-                                    <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Trip Count</label>
-                                    <input type="number" value={activeStateRecord.count || 0} onChange={(e) => handleCountChange(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-xs text-center font-bold" />
+                                    <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1.5">Activity Count / Trips</label>
+                                    <input type="number" value={activeStateRecord.count || 0} onChange={(e) => handleCountChange(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-center font-bold text-white focus:ring-1 focus:ring-indigo-500 outline-none" />
                                 </div>
                             </div>
 
-                            <div className="p-4 bg-slate-900/60 rounded-2xl border border-slate-800 space-y-3">
-                                <h2 className="text-xs font-black uppercase tracking-wider text-slate-400">Quick Paint Brush</h2>
-                                <div className="grid grid-cols-2 gap-1">
+                            <div className="p-5 bg-slate-900/80 rounded-2xl border border-slate-800 space-y-3 shadow-xl">
+                                <h2 className="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">🖌️ Quick Paint Brush</h2>
+                                <p className="text-[11px] text-slate-500 leading-normal">Tap a brush below, then click any tile directly on the grid to change its status instantly.</p>
+                                <div className="grid grid-cols-2 gap-1.5">
                                     {['lived', 'visited', 'want', 'unvisited'].map(st => (
-                                        <button key={st} onClick={() => setPaintTool(paintTool === st ? null : st)} className={`text-[10px] uppercase p-2 font-bold rounded-lg border ${paintTool === st ? 'bg-emerald-600 border-emerald-500 text-white' : 'bg-slate-950 border-slate-800 text-slate-400'}`}>{st}</button>
+                                        <button key={st} onClick={() => setPaintTool(paintTool === st ? null : st)} className={`text-[10px] uppercase py-2 font-bold rounded-xl border transition-all ${paintTool === st ? 'bg-emerald-600 border-emerald-500 text-white shadow-md' : 'bg-slate-950 border-slate-800 text-slate-400'}`}>{st}</button>
                                     ))}
                                 </div>
                             </div>
                         </div>
 
-                        {/* GRAPHIC SVG CANVASES */}
-                        <div className="lg:col-span-8 space-y-4">
-                            <div className="bg-slate-900 border border-slate-800 p-4 rounded-3xl overflow-x-auto">
-                                <svg id="statebins-svg" viewBox="0 0 1400 850" className="w-full h-auto">
+                        {/* GRAPHIC CANVAS */}
+                        <div className="lg:col-span-8 space-y-6">
+                            <div className="bg-slate-900 border border-slate-800 p-4 rounded-3xl overflow-x-auto shadow-2xl">
+                                <svg id="statebins-svg" viewBox="0 0 1400 850" className="w-full h-auto select-none">
                                     <rect width="1400" height="850" fill={customColors.background} rx="20" />
-                                    <text x="700" y="55" textAnchor="middle" fill="#ffffff" fontWeight="900" fontSize="32">{mapTitle}</text>
+                                    <text x="700" y="55" textAnchor="middle" fill="#ffffff" fontWeight="900" fontSize="32" letterSpacing="1">{mapTitle}</text>
                                     
-                                    <line x1="1237" y1="120" x2="1237" y2="720" stroke="#334155" strokeWidth="2.5" strokeDasharray="6,4" />
+                                    <line x1="1237" y1="120" x2="1237" y2="720" stroke={isDarkMode ? "#334155" : "#cbd5e1"} strokeWidth="2.5" strokeDasharray="6,4" />
                                     <text x="1315" y="150" textAnchor="middle" fill="#64748b" fontWeight="900" fontSize="11" letterSpacing="2">TERRITORIES</text>
 
                                     {STATES_DATA.map(state => {
@@ -268,9 +277,9 @@
                                         return (
                                             <g key={state.id} onClick={() => handleStateClick(state.id)} className="cursor-pointer">
                                                 <rect x={x + tileGap/2} y={y + tileGap/2} width={98 - tileGap} height={92 - tileGap} rx={cornerRadius} fill={stateColor} stroke={isSelected ? "#ffffff" : "none"} strokeWidth={isSelected ? "3" : "0"} />
-                                                <text x={x + 49} y={y + 42} textAnchor="middle" fontWeight="900" fontSize="24" fill={textColor}>{state.id}</text>
+                                                <text x={x + 49} y={y + 44} textAnchor="middle" fontWeight="900" fontSize="24" fill={textColor}>{state.id}</text>
                                                 {showSublabel && (
-                                                    <text x={x + 49} y={y + 66} textAnchor="middle" fontSize="10" fontWeight="700" fill={textColor} opacity="0.7">
+                                                    <text x={x + 49} y={y + 68} textAnchor="middle" fontSize="10" fontWeight="700" fill={textColor} opacity="0.7">
                                                         {mapMode === 'count' ? `${states[state.id]?.count || 0} Tr.` : state.name.substring(0,9)}
                                                     </text>
                                                 )}
@@ -280,11 +289,39 @@
                                 </svg>
                             </div>
 
-                            {/* SMALL SCOREBOARD */}
-                            <div className="grid grid-cols-3 gap-2">
-                                <div className="bg-slate-900/40 p-3 rounded-xl border border-slate-800 text-center"><span className="text-[10px] block font-bold text-slate-500">LIVED IN</span><span className="text-lg font-black">{totalLived}</span></div>
-                                <div className="bg-slate-900/40 p-3 rounded-xl border border-slate-800 text-center"><span className="text-[10px] block font-bold text-slate-500">VISITED</span><span className="text-lg font-black">{totalVisited}</span></div>
-                                <div className="bg-slate-900/40 p-3 rounded-xl border border-slate-800 text-center"><span className="text-[10px] block font-bold text-slate-500">WANT TO VISIT</span><span className="text-lg font-black">{totalWant}</span></div>
+                            {/* SCOREBOARD */}
+                            <div className="grid grid-cols-3 gap-3">
+                                <div className="bg-slate-900/80 p-4 rounded-xl border border-slate-800 text-center shadow-md"><span className="text-[10px] block font-black text-slate-500 uppercase tracking-wider mb-0.5">Lived In</span><span className="text-xl font-black text-purple-400">{totalLived}</span></div>
+                                <div className="bg-slate-900/80 p-4 rounded-xl border border-slate-800 text-center shadow-md"><span className="text-[10px] block font-black text-slate-500 uppercase tracking-wider mb-0.5">Visited</span><span className="text-xl font-black text-emerald-400">{totalVisited}</span></div>
+                                <div className="bg-slate-900/80 p-4 rounded-xl border border-slate-800 text-center shadow-md"><span className="text-[10px] block font-black text-slate-500 uppercase tracking-wider mb-0.5">Want to Visit</span><span className="text-xl font-black text-amber-400">{totalWant}</span></div>
+                            </div>
+
+                            {/* SEARCH AND FILTERS */}
+                            <div className="p-5 bg-slate-900/80 rounded-2xl border border-slate-800 space-y-4 shadow-xl">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                                    <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">📋 Comprehensive Checklist</h3>
+                                    <div className="flex items-center gap-1.5">
+                                        <select value={regionFilter} onChange={(e) => setRegionFilter(e.target.value)} className="text-xs font-bold bg-slate-950 border border-slate-800 rounded-lg p-1 text-slate-300 outline-none">
+                                            <option value="all">All Regions</option>
+                                            <option value="West">West Coast</option>
+                                            <option value="Midwest">Midwest</option>
+                                            <option value="South">The South</option>
+                                            <option value="Northeast">Northeast</option>
+                                            <option value="Territories">US Territories</option>
+                                        </select>
+                                        <button onClick={() => bulkAction('all-visited')} className="text-[10px] uppercase font-bold bg-emerald-950/40 border border-emerald-900/40 text-emerald-400 px-2 py-1 rounded">All Visited</button>
+                                        <button onClick={() => bulkAction('all-unvisited')} className="text-[10px] uppercase font-bold bg-slate-950 border border-slate-800 text-slate-400 px-2 py-1 rounded">Clear</button>
+                                    </div>
+                                </div>
+                                <input type="text" placeholder="Search by name or abbreviation..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-300 focus:ring-1 focus:ring-indigo-500 outline-none" />
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 max-h-[160px] overflow-y-auto pr-1">
+                                    {filteredStatesChecklist.map(s => (
+                                        <div key={s.id} onClick={() => setSelectedStateId(s.id)} className={`p-2 rounded-xl border text-xs cursor-pointer flex justify-between items-center transition-all ${selectedStateId === s.id ? 'bg-indigo-950/40 border-indigo-500' : 'bg-slate-950/40 border-slate-850 hover:border-slate-800'}`}>
+                                            <div className="truncate"><span className="font-black mr-1">{s.id}</span><span className="text-[10px] text-slate-500">{s.name}</span></div>
+                                            <div className={`w-2 h-2 rounded-full ${states[s.id]?.status === 'visited' ? 'bg-emerald-500' : states[s.id]?.status === 'lived' ? 'bg-purple-500' : states[s.id]?.status === 'want' ? 'bg-amber-400' : 'bg-slate-800'}`} />
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </main>
@@ -292,7 +329,7 @@
             );
         }
 
-        // MOUNT APPARATUS DIRECTLY (Ensures no scoping mismatch crashes root rendering loop)
+        // Safe Mount Wrapper
         const container = document.getElementById('root');
         const root = ReactDOM.createRoot(container);
         root.render(<App />);
