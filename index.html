@@ -32,6 +32,7 @@
         window.__app_id = window.__app_id || 'default-app-id';
         window.__firebase_config = window.__firebase_config || '{}';
 
+        function App() {
         import React, { useState, useEffect, useRef } from 'react';
 import { 
   Download, 
@@ -1619,7 +1620,7 @@ function App() {
     </div>
   );
 }
-
+        }
         // Render React directly to the DOM
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
