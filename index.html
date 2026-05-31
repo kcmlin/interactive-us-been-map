@@ -13,7 +13,7 @@
     <!-- Babel Standalone (runs JSX natively in the browser) -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <!-- Lucide Icons Global Library -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide-react@latest"></script>
 </head>
 <body>
     <div id="root"></div>
@@ -21,11 +21,11 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
         const { 
-          Download, Share2, Sparkles, MapPin, Sliders, Calendar, Edit3, Filter, 
-          CheckCircle2, Grid, Trash2, Settings, Plus, Minus, Info, Lock, 
-          Unlock, BookOpen, Heart, Globe, Award, Search, Check, Copy, 
-          ChevronRight, RefreshCw, Sun, Moon 
-        } = lucide;
+            Download, Share2, Sparkles, MapPin, Sliders, Calendar, Edit3, Filter, 
+            CheckCircle2, Grid, Trash2, Settings, Plus, Minus, Info, Lock,     
+            Unlock, BookOpen, Heart, Globe, Award, Search, Check, Copy, 
+            ChevronRight, RefreshCw, Sun, Moon 
+        } = lucideReact;
 
         // --- MOCK FIREBASE CONFIG FOR GITHUB PAGES DIRECT RUNS ---
         let db = null;
