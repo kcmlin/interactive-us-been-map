@@ -3,336 +3,442 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Been Map for the United States</title>
-    <!-- Tailwind CSS Engine -->
+    <title>StateBins Travel Studio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
-    <!-- React 18 Core Engines -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-    <!-- Live Browser Babel Transpiler -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <!-- Production Compiled UMD CDN wrapper for Lucide Icons -->
-    <script src="https://unpkg.com/lucide-react@latest/dist/umd/lucide-react.min.js"></script>
+    <style>
+        /* Smooth scrolling for checklists */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(30, 41, 59, 0.5); }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
 </head>
-<body class="bg-slate-950 text-slate-100">
-    <div id="root"></div>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-6 font-sans">
 
-    <script type="text/babel">
-        // Safe context extractions
-        const { useState, useEffect, useRef } = React;
+    <header class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 border-b border-slate-800 pb-4">
+        <div>
+            <h1 class="text-2xl font-black tracking-tight bg-gradient-to-r from-indigo-400 to-emerald-400 bg-clip-text text-transparent">
+                StateBins Travel Studio
+            </h1>
+            <p class="text-xs text-slate-400">Interactive Native Side-Dock Grid Map</p>
+        </div>
+        <div class="flex gap-2">
+            <button id="mode-toggle" class="text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-200 px-4 py-2 rounded-xl border border-slate-800 transition-all">
+                Mode: CATEGORIES
+            </button>
+            <button id="theme-toggle" class="text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-200 px-4 py-2 rounded-xl border border-slate-800 transition-all">
+                🌙 Dark Mode
+            </button>
+        </div>
+    </header>
 
-        // FIXED GLOBAL SCOPE VARIABLE: Mapped directly to Capitalized "LucideReact"
-        const { 
-          Download, Share2, Sparkles, MapPin, Sliders, Calendar, Edit3, Filter, 
-          CheckCircle2, Grid, Trash2, Settings, Plus, Minus, Info, Lock, 
-          Unlock, BookOpen, Heart, Globe, Award, Search, Check, Copy, 
-          ChevronRight, RefreshCw, Sun, Moon 
-        } = LucideReact;
+    <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <div class="lg:col-span-4 space-y-6">
+            
+            <div class="p-5 bg-slate-900/80 rounded-2xl border border-slate-800 space-y-4 shadow-xl">
+                <h2 class="text-xs font-black uppercase tracking-wider text-slate-400">🎯 Active Node Control</h2>
+                <div id="active-state-banner" class="text-base font-extrabold text-indigo-400 bg-indigo-950/40 p-2 rounded-xl border border-indigo-900/30 text-center">
+                    Washington (WA)
+                </div>
+                
+                <div class="grid grid-cols-2 gap-1.5">
+                    <button data-status="lived" class="status-btn text-[10px] tracking-wider uppercase py-2.5 font-bold rounded-xl border bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200">Lived In</button>
+                    <button data-status="visited" class="status-btn text-[10px] tracking-wider uppercase py-2.5 font-bold rounded-xl border bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200">Visited</button>
+                    <button data-status="want" class="status-btn text-[10px] tracking-wider uppercase py-2.5 font-bold rounded-xl border bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200">Want to Visit</button>
+                    <button data-status="unvisited" class="status-btn text-[10px] tracking-wider uppercase py-2.5 font-bold rounded-xl border bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200">Unvisited</button>
+                </div>
+                
+                <div class="pt-2">
+                    <label class="text-[10px] uppercase font-bold text-slate-400 block mb-1.5">Activity Count / Trips</label>
+                    <input id="activity-counter" type="number" min="0" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-center font-bold text-white focus:border-indigo-500 outline-none" value="0">
+                </div>
+            </div>
 
+            <div class="p-5 bg-slate-900/80 rounded-2xl border border-slate-800 space-y-3 shadow-xl">
+                <h2 class="text-xs font-black uppercase tracking-wider text-slate-400">🖌️ Quick Paint Brush</h2>
+                <p class="text-[11px] text-slate-500 leading-normal">Tap a brush below, then click any tile directly on the grid map to paint it instantly.</p>
+                <div class="grid grid-cols-2 gap-1.5">
+                    <button data-paint="lived" class="paint-btn text-[10px] uppercase py-2 font-bold rounded-xl border border-slate-800 bg-slate-950 text-slate-400">Lived In</button>
+                    <button data-paint="visited" class="paint-btn text-[10px] uppercase py-2 font-bold rounded-xl border border-slate-800 bg-slate-950 text-slate-400">Visited</button>
+                    <button data-paint="want" class="paint-btn text-[10px] uppercase py-2 font-bold rounded-xl border border-slate-800 bg-slate-950 text-slate-400">Want To Visit</button>
+                    <button data-paint="unvisited" class="paint-btn text-[10px] uppercase py-2 font-bold rounded-xl border border-slate-800 bg-slate-950 text-slate-400">Clear Eraser</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-8 space-y-6">
+            
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-3xl overflow-x-auto shadow-2xl">
+                <svg id="statebins-svg" viewBox="0 0 1400 850" class="w-full h-auto select-none"></svg>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3">
+                <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 text-center shadow-md">
+                    <span class="text-[10px] block font-black text-slate-500 uppercase tracking-wider mb-0.5">Lived In</span>
+                    <span id="score-lived" class="text-xl font-black text-purple-400">0</span>
+                </div>
+                <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 text-center shadow-md">
+                    <span class="text-[10px] block font-black text-slate-500 uppercase tracking-wider mb-0.5">Visited</span>
+                    <span id="score-visited" class="text-xl font-black text-emerald-400">0</span>
+                </div>
+                <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 text-center shadow-md">
+                    <span class="text-[10px] block font-black text-slate-500 uppercase tracking-wider mb-0.5">Want to Visit</span>
+                    <span id="score-want" class="text-xl font-black text-amber-400">0</span>
+                </div>
+            </div>
+
+            <div class="p-5 bg-slate-900/80 rounded-2xl border border-slate-800 space-y-4 shadow-xl">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                    <h3 class="text-xs font-black uppercase tracking-wider text-slate-400">📋 Comprehensive Checklist</h3>
+                    <div class="flex items-center gap-1.5">
+                        <button id="bulk-visit" class="text-[10px] uppercase font-bold bg-emerald-950/40 border border-emerald-900/40 text-emerald-400 px-2 py-1 rounded">Mark All Visited</button>
+                        <button id="bulk-clear" class="text-[10px] uppercase font-bold bg-slate-950 border border-slate-800 text-slate-400 px-2 py-1 rounded">Reset All</button>
+                    </div>
+                </div>
+                <input id="search-input" type="text" placeholder="Search by name or abbreviation..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-300 focus:border-indigo-500 outline-none">
+                <div id="checklist-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-2 max-h-[160px] overflow-y-auto pr-1"></div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // Data arrays
         const STATES_DATA = [
-          { id: 'AK', name: 'Alaska', col: 0, row: 0, region: 'West' },
-          { id: 'ME', name: 'Maine', col: 11, row: 0, region: 'Northeast' },
-          { id: 'WA', name: 'Washington', col: 1, row: 1, region: 'West' },
-          { id: 'ID', name: 'Idaho', col: 2, row: 1, region: 'West' },
-          { id: 'MT', name: 'Montana', col: 3, row: 1, region: 'West' },
-          { id: 'ND', name: 'North Dakota', col: 4, row: 1, region: 'Midwest' },
-          { id: 'MN', name: 'Minnesota', col: 5, row: 1, region: 'Midwest' },
-          { id: 'WI', name: 'Wisconsin', col: 6, row: 1, region: 'Midwest' },
-          { id: 'MI', name: 'Michigan', col: 8, row: 1, region: 'Midwest' },
-          { id: 'NY', name: 'New York', col: 9, row: 1, region: 'Northeast' },
-          { id: 'VT', name: 'Vermont', col: 10, row: 1, region: 'Northeast' },
-          { id: 'NH', name: 'New Hampshire', col: 11, row: 1, region: 'Northeast' },
-          { id: 'OR', name: 'Oregon', col: 1, row: 2, region: 'West' },
-          { id: 'NV', name: 'Nevada', col: 2, row: 2, region: 'West' },
-          { id: 'WY', name: 'Wyoming', col: 3, row: 2, region: 'West' },
-          { id: 'SD', name: 'South Dakota', col: 4, row: 2, region: 'Midwest' },
-          { id: 'IA', name: 'Iowa', col: 5, row: 2, region: 'Midwest' },
-          { id: 'IL', name: 'Illinois', col: 6, row: 2, region: 'Midwest' },
-          { id: 'IN', name: 'Indiana', col: 7, row: 2, region: 'Midwest' },
-          { id: 'OH', name: 'Ohio', col: 8, row: 2, region: 'Midwest' },
-          { id: 'PA', name: 'Pennsylvania', col: 9, row: 2, region: 'Northeast' },
-          { id: 'NJ', name: 'New Jersey', col: 10, row: 2, region: 'Northeast' },
-          { id: 'MA', name: 'Massachusetts', col: 11, row: 2, region: 'Northeast' },
-          { id: 'CA', name: 'California', col: 1, row: 3, region: 'West' },
-          { id: 'UT', name: 'Utah', col: 2, row: 3, region: 'West' },
-          { id: 'CO', name: 'Colorado', col: 3, row: 3, region: 'West' },
-          { id: 'NE', name: 'Nebraska', col: 4, row: 3, region: 'Midwest' },
-          { id: 'MO', name: 'Missouri', col: 5, row: 3, region: 'Midwest' },
-          { id: 'KY', name: 'Kentucky', col: 6, row: 3, region: 'South' },
-          { id: 'WV', name: 'West Virginia', col: 7, row: 3, region: 'South' },
-          { id: 'MD', name: 'Maryland', col: 8, row: 3, region: 'South' },
-          { id: 'DE', name: 'Delaware', col: 9, row: 3, region: 'South' },
-          { id: 'RI', name: 'Rhode Island', col: 10, row: 3, region: 'Northeast' },
-          { id: 'CT', name: 'Connecticut', col: 11, row: 3, region: 'Northeast' },
-          { id: 'AZ', name: 'Arizona', col: 2, row: 4, region: 'West' },
-          { id: 'NM', name: 'New Mexico', col: 3, row: 4, region: 'West' },
-          { id: 'KS', name: 'Kansas', col: 4, row: 4, region: 'Midwest' },
-          { id: 'AR', name: 'Arkansas', col: 5, row: 4, region: 'South' },
-          { id: 'TN', name: 'Tennessee', col: 6, row: 4, region: 'South' },
-          { id: 'NC', name: 'North Carolina', col: 7, row: 4, region: 'South' },
-          { id: 'SC', name: 'South Carolina', col: 8, row: 4, region: 'South' },
-          { id: 'DC', name: 'District of Columbia', col: 9, row: 4, region: 'South' },
-          { id: 'OK', name: 'Oklahoma', col: 4, row: 5, region: 'South' },
-          { id: 'LA', name: 'Louisiana', col: 5, row: 5, region: 'South' },
-          { id: 'MS', name: 'Mississippi', col: 6, row: 5, region: 'South' },
-          { id: 'AL', name: 'Alabama', col: 7, row: 5, region: 'South' },
-          { id: 'GA', name: 'Georgia', col: 8, row: 5, region: 'South' },
-          { id: 'HI', name: 'Hawaii', col: 0, row: 6, region: 'West' },
-          { id: 'TX', name: 'Texas', col: 4, row: 6, region: 'South' },
-          { id: 'FL', name: 'Florida', col: 9, row: 6, region: 'South' },
-          { id: 'PR', name: 'Puerto Rico', col: 13, row: 1, region: 'Territories' },
-          { id: 'VI', name: 'US Virgin Is.', col: 13, row: 2, region: 'Territories' },
-          { id: 'GU', name: 'Guam', col: 13, row: 3, region: 'Territories' },
-          { id: 'MP', name: 'N. Marianas', col: 13, row: 4, region: 'Territories' },
+          { id: 'AK', name: 'Alaska', col: 0, row: 0, region: 'West' }, { id: 'ME', name: 'Maine', col: 11, row: 0, region: 'Northeast' },
+          { id: 'WA', name: 'Washington', col: 1, row: 1, region: 'West' }, { id: 'ID', name: 'Idaho', col: 2, row: 1, region: 'West' },
+          { id: 'MT', name: 'Montana', col: 3, row: 1, region: 'West' }, { id: 'ND', name: 'North Dakota', col: 4, row: 1, region: 'Midwest' },
+          { id: 'MN', name: 'Minnesota', col: 5, row: 1, region: 'Midwest' }, { id: 'WI', name: 'Wisconsin', col: 6, row: 1, region: 'Midwest' },
+          { id: 'MI', name: 'Michigan', col: 8, row: 1, region: 'Midwest' }, { id: 'NY', name: 'New York', col: 9, row: 1, region: 'Northeast' },
+          { id: 'VT', name: 'Vermont', col: 10, row: 1, region: 'Northeast' }, { id: 'NH', name: 'New Hampshire', col: 11, row: 1, region: 'Northeast' },
+          { id: 'OR', name: 'Oregon', col: 1, row: 2, region: 'West' }, { id: 'NV', name: 'Nevada', col: 2, row: 2, region: 'West' },
+          { id: 'WY', name: 'Wyoming', col: 3, row: 2, region: 'West' }, { id: 'SD', name: 'South Dakota', col: 4, row: 2, region: 'Midwest' },
+          { id: 'IA', name: 'Iowa', col: 5, row: 2, region: 'Midwest' }, { id: 'IL', name: 'Illinois', col: 6, row: 2, region: 'Midwest' },
+          { id: 'IN', name: 'Indiana', col: 7, row: 2, region: 'Midwest' }, { id: 'OH', name: 'Ohio', col: 8, row: 2, region: 'Midwest' },
+          { id: 'PA', name: 'Pennsylvania', col: 9, row: 2, region: 'Northeast' }, { id: 'NJ', name: 'New Jersey', col: 10, row: 2, region: 'Northeast' },
+          { id: 'MA', name: 'Massachusetts', col: 11, row: 2, region: 'Northeast' }, { id: 'CA', name: 'California', col: 1, row: 3, region: 'West' },
+          { id: 'UT', name: 'Utah', col: 2, row: 3, region: 'West' }, { id: 'CO', name: 'Colorado', col: 3, row: 3, region: 'West' },
+          { id: 'NE', name: 'Nebraska', col: 4, row: 3, region: 'Midwest' }, { id: 'MO', name: 'Missouri', col: 5, row: 3, region: 'Midwest' },
+          { id: 'KY', name: 'Kentucky', col: 6, row: 3, region: 'South' }, { id: 'WV', name: 'West Virginia', col: 7, row: 3, region: 'South' },
+          { id: 'MD', name: 'Maryland', col: 8, row: 3, region: 'South' }, { id: 'DE', name: 'Delaware', col: 9, row: 3, region: 'South' },
+          { id: 'RI', name: 'Rhode Island', col: 10, row: 3, region: 'Northeast' }, { id: 'CT', name: 'Connecticut', col: 11, row: 3, region: 'Northeast' },
+          { id: 'AZ', name: 'Arizona', col: 2, row: 4, region: 'West' }, { id: 'NM', name: 'New Mexico', col: 3, row: 4, region: 'West' },
+          { id: 'KS', name: 'Kansas', col: 4, row: 4, region: 'Midwest' }, { id: 'AR', name: 'Arkansas', col: 5, row: 4, region: 'South' },
+          { id: 'TN', name: 'Tennessee', col: 6, row: 4, region: 'South' }, { id: 'NC', name: 'North Carolina', col: 7, row: 4, region: 'South' },
+          { id: 'SC', name: 'South Carolina', col: 8, row: 4, region: 'South' }, { id: 'DC', name: 'District of Columbia', col: 9, row: 4, region: 'South' },
+          { id: 'OK', name: 'Oklahoma', col: 4, row: 5, region: 'South' }, { id: 'LA', name: 'Louisiana', col: 5, row: 5, region: 'South' },
+          { id: 'MS', name: 'Mississippi', col: 6, row: 5, region: 'South' }, { id: 'AL', name: 'Alabama', col: 7, row: 5, region: 'South' },
+          { id: 'GA', name: 'Georgia', col: 8, row: 5, region: 'South' }, { id: 'HI', name: 'Hawaii', col: 0, row: 6, region: 'West' },
+          { id: 'TX', name: 'Texas', col: 4, row: 6, region: 'South' }, { id: 'FL', name: 'Florida', col: 9, row: 6, region: 'South' },
+          // Territories
+          { id: 'PR', name: 'Puerto Rico', col: 13, row: 1, region: 'Territories' }, { id: 'VI', name: 'US Virgin Is.', col: 13, row: 2, region: 'Territories' },
+          { id: 'GU', name: 'Guam', col: 13, row: 3, region: 'Territories' }, { id: 'MP', name: 'N. Marianas', col: 13, row: 4, region: 'Territories' },
           { id: 'AS', name: 'Am. Samoa', col: 13, row: 5, region: 'Territories' }
         ];
 
-        const PRESET_THEMES = {
-          runmap: { name: "Runmap Premium", background: "#0f172a", unvisited: "#1e293b", lived: "#8b5cf6", visited: "#10b981", want: "#f59e0b", textVisited: "#ffffff", textUnvisited: "#64748b" },
-          emeraldSea: { name: "Emerald Forest", background: "#022c22", unvisited: "#064e3b", lived: "#34d399", visited: "#059669", want: "#a7f3d0", textVisited: "#ffffff", textUnvisited: "#047857" },
-          neonCyber: { name: "Cyber Grid", background: "#000000", unvisited: "#18181b", lived: "#ec4899", visited: "#06b6d4", want: "#eab308", textVisited: "#ffffff", textUnvisited: "#52525b" },
-          pastelSky: { name: "Cotton Candy", background: "#f8fafc", unvisited: "#e2e8f0", lived: "#c084fc", visited: "#60a5fa", want: "#fbcfe8", textVisited: "#ffffff", textUnvisited: "#94a3b8" },
-          highContrast: { name: "High Contrast", background: "#ffffff", unvisited: "#f3f4f6", lived: "#000000", visited: "#1d4ed8", want: "#db2777", textVisited: "#ffffff", textUnvisited: "#9ca3af" }
+        const THEME_COLORS = {
+          unvisited: "#1e293b",
+          lived: "#8b5cf6",
+          visited: "#10b981",
+          want: "#f59e0b",
+          textVisited: "#ffffff",
+          textUnvisited: "#64748b",
+          background: "#0f172a"
         };
 
-        const COUNT_THEMES = {
-          ocean: { name: "Deep Ocean Blues", shades: ["#f1f5f9", "#93c5fd", "#3b82f6", "#1d4ed8", "#1e3a8a"] },
-          sunset: { name: "Volcanic Sunset", shades: ["#fafaf9", "#fdba74", "#f97316", "#ea580c", "#7c2d12"] },
-          viridian: { name: "Viridian Greens", shades: ["#f0fdf4", "#86efac", "#22c55e", "#15803d", "#14532d"] },
-          berry: { name: "Crimson Berry", shades: ["#fff1f2", "#fda4af", "#f43f5e", "#be123c", "#4c0519"] }
-        };
+        const COUNT_SHADES = ["#f1f5f9", "#93c5fd", "#3b82f6", "#1d4ed8", "#1e3a8a"];
 
-        function App() {
-            const [mapTitle, setMapTitle] = useState("MY US TRAVEL ADVENTURES");
-            const [mapSubtitle, setMapSubtitle] = useState("Interactive Statebins Tracker");
-            const [states, setStates] = useState({});
-            const [selectedStateId, setSelectedStateId] = useState("WA");
-            const [mapMode, setMapMode] = useState("status");
-            const [themeKey, setThemeKey] = useState("runmap");
-            const [countThemeKey, setCountThemeKey] = useState("ocean");
-            const [customColors, setCustomColors] = useState({ ...PRESET_THEMES.runmap });
-            const [cornerRadius, setCornerRadius] = useState(12);
-            const [tileGap, setTileGap] = useState(6);
-            const [showSublabel, setShowSublabel] = useState(true);
-            const [fontStyle, setFontStyle] = useState("sans");
-            const [tileShadow, setTileShadow] = useState(true);
-            const [paintTool, setPaintTool] = useState(null);
-            const [isDarkMode, setIsDarkMode] = useState(true);
-            const [searchQuery, setSearchQuery] = useState("");
-            const [regionFilter, setRegionFilter] = useState("all");
-            const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
+        // State Machine
+        let userUserData = {};
+        let selectedStateId = "WA";
+        let currentMapMode = "status"; // "status" or "count"
+        let activePaintTool = null;
+        let darkStyleEnabled = true;
 
-            useEffect(() => {
-                const demoStates = {};
-                STATES_DATA.forEach(s => {
-                    demoStates[s.id] = {
-                        status: s.id === 'WA' || s.id === 'NY' ? 'lived' : 
-                                ['CA', 'OR', 'NV', 'AZ', 'UT', 'CO', 'TX', 'FL', 'IL', 'MA', 'PA', 'HI', 'PR'].includes(s.id) ? 'visited' :
-                                ['MT', 'WY', 'ME', 'AK', 'VI'].includes(s.id) ? 'want' : 'unvisited',
-                        count: s.id === 'WA' ? 12 : ['CA', 'NY', 'OR', 'TX', 'PR'].includes(s.id) ? 4 : ['NV', 'AZ', 'FL'].includes(s.id) ? 1 : 0,
-                        notes: s.id === 'WA' ? 'Lived here for 5 years.' : '',
-                        dateVisited: ''
-                    };
-                });
-                setStates(demoStates);
-            }, []);
-
-            useEffect(() => {
-                if (themeKey !== "custom" && PRESET_THEMES[themeKey]) {
-                    setCustomColors({ ...PRESET_THEMES[themeKey] });
-                }
-            }, [themeKey]);
-
-            const showToast = (message) => {
-                setToast({ show: true, message });
-                setTimeout(() => setToast({ show: false, message: '' }), 3000);
+        // Initialize user record slots
+        STATES_DATA.forEach(s => {
+            userUserData[s.id] = {
+                status: (s.id === 'WA' || s.id === 'NY') ? 'lived' : (['CA', 'OR', 'FL', 'PR'].includes(s.id) ? 'visited' : 'unvisited'),
+                count: s.id === 'WA' ? 8 : (['CA', 'PR'].includes(s.id) ? 2 : 0)
             };
+        });
 
-            const handleStateClick = (stateId) => {
-                setSelectedStateId(stateId);
-                if (paintTool) {
-                    setStates(prev => {
-                        const current = prev[stateId] || { status: 'unvisited', count: 0 };
-                        let updated = { ...current };
-                        if (mapMode === 'status') {
-                            updated.status = paintTool;
-                        } else {
-                            if (paintTool === 'add') updated.count = current.count + 1;
-                            if (paintTool === 'subtract') updated.count = Math.max(0, current.count - 1);
-                            if (paintTool === 'clear') updated.count = 0;
-                        }
-                        return { ...prev, [stateId]: updated };
-                    });
-                }
-            };
+        // DOM Pointers
+        const svgCanvas = document.getElementById('statebins-svg');
+        const activeBanner = document.getElementById('active-state-banner');
+        const activityInput = document.getElementById('activity-counter');
+        const searchInput = document.getElementById('search-input');
+        const checklistGrid = document.getElementById('checklist-grid');
 
-            const handleStatusChange = (status) => {
-                setStates(prev => ({ ...prev, [selectedStateId]: { ...prev[selectedStateId], status } }));
-            };
-
-            const handleCountChange = (count) => {
-                setStates(prev => ({ ...prev, [selectedStateId]: { ...prev[selectedStateId], count: Math.max(0, parseInt(count) || 0) } }));
-            };
-
-            const bulkAction = (action) => {
-                setStates(prev => {
-                    const next = { ...prev };
-                    STATES_DATA.forEach(s => {
-                        if (regionFilter !== 'all' && s.region !== regionFilter) return;
-                        if (action === 'all-visited') next[s.id] = { ...next[s.id], status: 'visited', count: 1 };
-                        if (action === 'all-unvisited') next[s.id] = { ...next[s.id], status: 'unvisited', count: 0 };
-                    });
-                    return next;
-                });
-                showToast("Bulk updates applied!");
-            };
-
-            const getStateColor = (stateId) => {
-                const sInfo = states[stateId] || { status: 'unvisited', count: 0 };
-                if (mapMode === 'status') return customColors[sInfo.status] || customColors.unvisited;
-                if (sInfo.count === 0) return customColors.unvisited;
-                const palette = COUNT_THEMES[countThemeKey]?.shades || COUNT_THEMES.ocean.shades;
-                return sInfo.count <= 2 ? palette[1] : sInfo.count <= 5 ? palette[2] : palette[4];
-            };
-
-            const getTextColor = (stateId) => {
-                const sInfo = states[stateId] || { status: 'unvisited', count: 0 };
-                return sInfo.status === 'unvisited' && mapMode === 'status' ? customColors.textUnvisited : customColors.textVisited;
-            };
-
-            const totalLived = STATES_DATA.filter(s => states[s.id]?.status === 'lived').length;
-            const totalVisited = STATES_DATA.filter(s => states[s.id]?.status === 'visited').length;
-            const totalWant = STATES_DATA.filter(s => states[s.id]?.status === 'want').length;
-
-            const activeStateObj = STATES_DATA.find(s => s.id === selectedStateId);
-            const activeStateRecord = states[selectedStateId] || { status: 'unvisited', count: 0, notes: '' };
-
-            const filteredStatesChecklist = STATES_DATA.filter(s => {
-                const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.id.toLowerCase().includes(searchQuery.toLowerCase());
-                const matchesRegion = regionFilter === 'all' || s.region === regionFilter;
-                return matchesSearch && matchesRegion;
-            });
-
-            return (
-                <div className={`min-h-screen p-6 ${isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
-                    {toast.show && <div className="fixed bottom-4 right-4 bg-indigo-600 text-white px-4 py-2 rounded-xl z-50 text-xs font-bold">{toast.message}</div>}
-                    
-                    <header className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 border-b border-slate-800 pb-4">
-                        <div>
-                          <h1 className="text-2xl font-black tracking-tight bg-gradient-to-r from-indigo-400 to-emerald-400 bg-clip-text text-transparent">Interactive Been Map for the United States</h1>
-                          <p className="text-xs text-slate-400">Interactive Side-Dock Grid Map</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <button onClick={() => setMapMode(mapMode === 'status' ? 'count' : 'status')} className="text-xs font-bold bg-slate-850 hover:bg-slate-800 text-slate-200 px-4 py-2 rounded-xl border border-slate-800 transition-all">Mode: {mapMode.toUpperCase()}</button>
-                          <button onClick={() => setIsDarkMode(!isDarkMode)} className="text-xs font-bold bg-slate-850 hover:bg-slate-800 text-slate-200 px-4 py-2 rounded-xl border border-slate-800 transition-all">{isDarkMode ? '⛅ Light Mode' : '🌙 Dark Mode'}</button>
-                        </div>
-                    </header>
-
-                    <main className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
-                        {/* CONTROLS */}
-                        <div className="lg:col-span-4 space-y-6">
-                            <div className="p-5 bg-slate-900/80 rounded-2xl border border-slate-800 space-y-4 shadow-xl">
-                                <h2 className="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">🎯 Active Node Control</h2>
-                                <div className="text-base font-extrabold text-indigo-400 bg-indigo-950/40 p-2 rounded-xl border border-indigo-900/30 text-center">{activeStateObj?.name} ({activeStateObj?.id})</div>
-                                <div className="grid grid-cols-2 gap-1.5">
-                                    {['lived', 'visited', 'want', 'unvisited'].map(st => (
-                                        <button key={st} onClick={() => handleStatusChange(st)} className={`text-[10px] tracking-wider uppercase py-2.5 font-bold rounded-xl border transition-all ${activeStateRecord.status === st ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg' : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'}`}>{st}</button>
-                                    ))}
-                                </div>
-                                <div className="pt-2">
-                                    <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1.5">Activity Count / Trips</label>
-                                    <input type="number" value={activeStateRecord.count || 0} onChange={(e) => handleCountChange(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-center font-bold text-white focus:ring-1 focus:ring-indigo-500 outline-none" />
-                                </div>
-                            </div>
-
-                            <div className="p-5 bg-slate-900/80 rounded-2xl border border-slate-800 space-y-3 shadow-xl">
-                                <h2 className="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">🖌️ Quick Paint Brush</h2>
-                                <p className="text-[11px] text-slate-500 leading-normal">Tap a brush below, then click any tile directly on the grid to change its status instantly.</p>
-                                <div className="grid grid-cols-2 gap-1.5">
-                                    {['lived', 'visited', 'want', 'unvisited'].map(st => (
-                                        <button key={st} onClick={() => setPaintTool(paintTool === st ? null : st)} className={`text-[10px] uppercase py-2 font-bold rounded-xl border transition-all ${paintTool === st ? 'bg-emerald-600 border-emerald-500 text-white shadow-md' : 'bg-slate-950 border-slate-800 text-slate-400'}`}>{st}</button>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* GRAPHIC CANVAS */}
-                        <div className="lg:col-span-8 space-y-6">
-                            <div className="bg-slate-900 border border-slate-800 p-4 rounded-3xl overflow-x-auto shadow-2xl">
-                                <svg id="statebins-svg" viewBox="0 0 1400 850" className="w-full h-auto select-none">
-                                    <rect width="1400" height="850" fill={customColors.background} rx="20" />
-                                    <text x="700" y="55" textAnchor="middle" fill="#ffffff" fontWeight="900" fontSize="32" letterSpacing="1">{mapTitle}</text>
-                                    
-                                    <line x1="1237" y1="120" x2="1237" y2="720" stroke={isDarkMode ? "#334155" : "#cbd5e1"} strokeWidth="2.5" strokeDasharray="6,4" />
-                                    <text x="1315" y="150" textAnchor="middle" fill="#64748b" fontWeight="900" fontSize="11" letterSpacing="2">TERRITORIES</text>
-
-                                    {STATES_DATA.map(state => {
-                                        const stateColor = getStateColor(state.id);
-                                        const textColor = getTextColor(state.id);
-                                        const x = 12 + state.col * 98;
-                                        const y = 120 + state.row * 92;
-                                        const isSelected = selectedStateId === state.id;
-
-                                        return (
-                                            <g key={state.id} onClick={() => handleStateClick(state.id)} className="cursor-pointer">
-                                                <rect x={x + tileGap/2} y={y + tileGap/2} width={98 - tileGap} height={92 - tileGap} rx={cornerRadius} fill={stateColor} stroke={isSelected ? "#ffffff" : "none"} strokeWidth={isSelected ? "3" : "0"} />
-                                                <text x={x + 49} y={y + 44} textAnchor="middle" fontWeight="900" fontSize="24" fill={textColor}>{state.id}</text>
-                                                {showSublabel && (
-                                                    <text x={x + 49} y={y + 68} textAnchor="middle" fontSize="10" fontWeight="700" fill={textColor} opacity="0.7">
-                                                        {mapMode === 'count' ? `${states[state.id]?.count || 0} Tr.` : state.name.substring(0,9)}
-                                                    </text>
-                                                )}
-                                            </g>
-                                        );
-                                    })}
-                                </svg>
-                            </div>
-
-                            {/* SCOREBOARD */}
-                            <div className="grid grid-cols-3 gap-3">
-                                <div className="bg-slate-900/80 p-4 rounded-xl border border-slate-800 text-center shadow-md"><span className="text-[10px] block font-black text-slate-500 uppercase tracking-wider mb-0.5">Lived In</span><span className="text-xl font-black text-purple-400">{totalLived}</span></div>
-                                <div className="bg-slate-900/80 p-4 rounded-xl border border-slate-800 text-center shadow-md"><span className="text-[10px] block font-black text-slate-500 uppercase tracking-wider mb-0.5">Visited</span><span className="text-xl font-black text-emerald-400">{totalVisited}</span></div>
-                                <div className="bg-slate-900/80 p-4 rounded-xl border border-slate-800 text-center shadow-md"><span className="text-[10px] block font-black text-slate-500 uppercase tracking-wider mb-0.5">Want to Visit</span><span className="text-xl font-black text-amber-400">{totalWant}</span></div>
-                            </div>
-
-                            {/* SEARCH AND FILTERS */}
-                            <div className="p-5 bg-slate-900/80 rounded-2xl border border-slate-800 space-y-4 shadow-xl">
-                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                                    <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">📋 Comprehensive Checklist</h3>
-                                    <div className="flex items-center gap-1.5">
-                                        <select value={regionFilter} onChange={(e) => setRegionFilter(e.target.value)} className="text-xs font-bold bg-slate-950 border border-slate-800 rounded-lg p-1 text-slate-300 outline-none">
-                                            <option value="all">All Regions</option>
-                                            <option value="West">West Coast</option>
-                                            <option value="Midwest">Midwest</option>
-                                            <option value="South">The South</option>
-                                            <option value="Northeast">Northeast</option>
-                                            <option value="Territories">US Territories</option>
-                                        </select>
-                                        <button onClick={() => bulkAction('all-visited')} className="text-[10px] uppercase font-bold bg-emerald-950/40 border border-emerald-900/40 text-emerald-400 px-2 py-1 rounded">All Visited</button>
-                                        <button onClick={() => bulkAction('all-unvisited')} className="text-[10px] uppercase font-bold bg-slate-950 border border-slate-800 text-slate-400 px-2 py-1 rounded">Clear</button>
-                                    </div>
-                                </div>
-                                <input type="text" placeholder="Search by name or abbreviation..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-300 focus:ring-1 focus:ring-indigo-500 outline-none" />
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 max-h-[160px] overflow-y-auto pr-1">
-                                    {filteredStatesChecklist.map(s => (
-                                        <div key={s.id} onClick={() => setSelectedStateId(s.id)} className={`p-2 rounded-xl border text-xs cursor-pointer flex justify-between items-center transition-all ${selectedStateId === s.id ? 'bg-indigo-950/40 border-indigo-500' : 'bg-slate-950/40 border-slate-850 hover:border-slate-800'}`}>
-                                            <div className="truncate"><span className="font-black mr-1">{s.id}</span><span className="text-[10px] text-slate-500">{s.name}</span></div>
-                                            <div className={`w-2 h-2 rounded-full ${states[s.id]?.status === 'visited' ? 'bg-emerald-500' : states[s.id]?.status === 'lived' ? 'bg-purple-500' : states[s.id]?.status === 'want' ? 'bg-amber-400' : 'bg-slate-800'}`} />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </main>
-                </div>
-            );
+        // Initialization Pipeline
+        function initApp() {
+            renderMapGraphic();
+            renderChecklist();
+            updateScoreboard();
+            bindControlPanels();
         }
 
-        // Safe Mount Wrapper
-        const container = document.getElementById('root');
-        const root = ReactDOM.createRoot(container);
-        root.render(<App />);
+        // Render SVG Map Nodes Engine
+        function renderMapGraphic() {
+            svgCanvas.innerHTML = '';
+            
+            // Background base card
+            const bgRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            bgRect.setAttribute("width", "1400");
+            bgRect.setAttribute("height", "850");
+            bgRect.setAttribute("fill", THEME_COLORS.background);
+            bgRect.setAttribute("rx", "20");
+            svgCanvas.appendChild(bgRect);
+
+            // Title Header text
+            const titleText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            titleText.setAttribute("x", "700");
+            titleText.setAttribute("y", "55");
+            titleText.setAttribute("text-anchor", "middle");
+            titleText.setAttribute("fill", "#ffffff");
+            titleText.setAttribute("font-weight", "900");
+            titleText.setAttribute("font-size", "32");
+            titleText.textContent = "MY US TRAVEL ADVENTURES";
+            svgCanvas.appendChild(titleText);
+
+            // Separator Line
+            const separationLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            separationLine.setAttribute("x1", "1237");
+            separationLine.setAttribute("y1", "120");
+            separationLine.setAttribute("x2", "1237");
+            separationLine.setAttribute("y2", "720");
+            separationLine.setAttribute("stroke", "#334155");
+            separationLine.setAttribute("stroke-width", "2.5");
+            separationLine.setAttribute("stroke-dasharray", "6,4");
+            svgCanvas.appendChild(separationLine);
+
+            // Side column tag label
+            const labelText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            labelText.setAttribute("x", "1315");
+            labelText.setAttribute("y", "150");
+            labelText.setAttribute("text-anchor", "middle");
+            labelText.setAttribute("fill", "#64748b");
+            labelText.setAttribute("font-weight", "900");
+            labelText.setAttribute("font-size", "11");
+            labelText.setAttribute("letter-spacing", "2");
+            labelText.textContent = "TERRITORIES";
+            svgCanvas.appendChild(labelText);
+
+            // Render Node Grid Loop
+            STATES_DATA.forEach(state => {
+                const record = userUserData[state.id];
+                const x = 12 + state.col * 98;
+                const y = 120 + state.row * 92;
+                const isSelected = selectedStateId === state.id;
+
+                // Color calculation assignment logic
+                let nodeColor = THEME_COLORS.unvisited;
+                let textNodeColor = THEME_COLORS.textUnvisited;
+
+                if (currentMapMode === 'status') {
+                    nodeColor = THEME_COLORS[record.status] || THEME_COLORS.unvisited;
+                    if (record.status !== 'unvisited') textNodeColor = THEME_COLORS.textVisited;
+                } else {
+                    if (record.count > 0) {
+                        textNodeColor = "#ffffff";
+                        if (record.count <= 2) nodeColor = COUNT_SHADES[1];
+                        else if (record.count <= 5) nodeColor = COUNT_SHADES[2];
+                        else nodeColor = COUNT_SHADES[4];
+                    }
+                }
+
+                const nodeGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                nodeGroup.style.cursor = "pointer";
+                nodeGroup.onclick = () => selectStateNode(state.id);
+
+                // Grid Node Rectangle element box
+                const rectNode = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                rectNode.setAttribute("x", (x + 3).toString());
+                rectNode.setAttribute("y", (y + 3).toString());
+                rectNode.setAttribute("width", "92");
+                rectNode.setAttribute("height", "86");
+                rectNode.setAttribute("rx", "12");
+                rectNode.setAttribute("fill", nodeColor);
+                if (isSelected) {
+                    rectNode.setAttribute("stroke", "#ffffff");
+                    rectNode.setAttribute("stroke-width", "3");
+                }
+                nodeGroup.appendChild(rectNode);
+
+                // Postal Code Text label
+                const upperLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                upperLabel.setAttribute("x", (x + 49).toString());
+                upperLabel.setAttribute("y", (y + 42).toString());
+                upperLabel.setAttribute("text-anchor", "middle");
+                upperLabel.setAttribute("font-weight", "900");
+                upperLabel.setAttribute("font-size", "24");
+                upperLabel.setAttribute("fill", textNodeColor);
+                upperLabel.textContent = state.id;
+                nodeGroup.appendChild(upperLabel);
+
+                // Dynamic sub-label text markup 
+                const lowerLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                lowerLabel.setAttribute("x", (x + 49).toString());
+                lowerLabel.setAttribute("y", (y + 68).toString());
+                lowerLabel.setAttribute("text-anchor", "middle");
+                lowerLabel.setAttribute("font-weight", "700");
+                lowerLabel.setAttribute("font-size", "10");
+                lowerLabel.setAttribute("fill", textNodeColor);
+                lowerLabel.setAttribute("opacity", "0.7");
+                lowerLabel.textContent = currentMapMode === 'count' ? `${record.count} Tr.` : state.name.substring(0, 9);
+                nodeGroup.appendChild(lowerLabel);
+
+                svgCanvas.appendChild(nodeGroup);
+            });
+        }
+
+        // Active state click management router
+        function selectStateNode(id) {
+            if (activePaintTool) {
+                if (currentMapMode === 'status') {
+                    userUserData[id].status = activePaintTool;
+                    if (activePaintTool !== 'unvisited' && userUserData[id].count === 0) userUserData[id].count = 1;
+                    if (activePaintTool === 'unvisited') userUserData[id].count = 0;
+                }
+                renderMapGraphic();
+                updateScoreboard();
+                renderChecklist();
+            }
+            
+            selectedStateId = id;
+            const match = STATES_DATA.find(s => s.id === id);
+            activeBanner.textContent = `${match.name} (${match.id})`;
+            activityInput.value = userUserData[id].count;
+            
+            // Sync status buttons visuals
+            document.querySelectorAll('.status-btn').forEach(b => {
+                if (b.getAttribute('data-status') === userUserData[id].status) {
+                    b.className = "status-btn text-[10px] tracking-wider uppercase py-2.5 font-bold rounded-xl border bg-indigo-600 border-indigo-500 text-white shadow-lg";
+                } else {
+                    b.className = "status-btn text-[10px] tracking-wider uppercase py-2.5 font-bold rounded-xl border bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200";
+                }
+            });
+
+            // Re-render highlight borders cleanly
+            renderMapGraphic();
+        }
+
+        // Checklist Generator Interface
+        function renderChecklist() {
+            const query = searchInput.value.toLowerCase();
+            checklistGrid.innerHTML = '';
+
+            STATES_DATA.forEach(s => {
+                if (query && !s.name.toLowerCase().includes(query) && !s.id.toLowerCase().includes(query)) return;
+                const rec = userUserData[s.id];
+                
+                const itemCard = document.createElement('div');
+                itemCard.className = `p-2 rounded-xl border text-xs cursor-pointer flex justify-between items-center transition-all ${selectedStateId === s.id ? 'bg-indigo-950/40 border-indigo-500' : 'bg-slate-950/40 border-slate-850 hover:border-slate-800'}`;
+                itemCard.onclick = () => selectStateNode(s.id);
+
+                let badgeColor = "bg-slate-800";
+                if (rec.status === 'lived') badgeColor = "bg-purple-500";
+                else if (rec.status === 'visited') badgeColor = "bg-emerald-500";
+                else if (rec.status === 'want') badgeColor = "bg-amber-400";
+
+                itemCard.innerHTML = `<div class="truncate"><span class="font-black mr-1">${s.id}</span><span class="text-[10px] text-slate-500">${s.name}</span></div><div class="w-2 h-2 rounded-full ${badgeColor}"></div>`;
+                checklistGrid.appendChild(itemCard);
+            });
+        }
+
+        // Sync numeric indicators dynamically
+        function updateScoreboard() {
+            let lived = 0, visited = 0, want = 0;
+            STATES_DATA.forEach(s => {
+                const rec = userUserData[s.id];
+                if (rec.status === 'lived') lived++;
+                if (rec.status === 'visited') visited++;
+                if (rec.status === 'want') want++;
+            });
+            document.getElementById('score-lived').textContent = lived.toString();
+            document.getElementById('score-visited').textContent = visited.toString();
+            document.getElementById('score-want').textContent = want.toString();
+        }
+
+        // Global Event Control Mappings
+        function bindControlPanels() {
+            // Status Manual updates mapping
+            document.querySelectorAll('.status-btn').forEach(btn => {
+                btn.onclick = (e) => {
+                    const chosenStatus = e.target.getAttribute('data-status');
+                    userUserData[selectedStateId].status = chosenStatus;
+                    if (chosenStatus === 'unvisited') userUserData[selectedStateId].count = 0;
+                    else if (userUserData[selectedStateId].count === 0) userUserData[selectedStateId].count = 1;
+                    
+                    selectStateNode(selectedStateId);
+                    updateScoreboard();
+                    renderChecklist();
+                };
+            });
+
+            // Brush tools selector action loops
+            document.querySelectorAll('.paint-btn').forEach(btn => {
+                btn.onclick = (e) => {
+                    const tool = e.target.getAttribute('data-paint');
+                    if (activePaintTool === tool) {
+                        activePaintTool = null;
+                        e.target.className = "paint-btn text-[10px] uppercase py-2 font-bold rounded-xl border border-slate-800 bg-slate-950 text-slate-400";
+                    } else {
+                        document.querySelectorAll('.paint-btn').forEach(b => b.className = "paint-btn text-[10px] uppercase py-2 font-bold rounded-xl border border-slate-800 bg-slate-950 text-slate-400");
+                        activePaintTool = tool;
+                        e.target.className = "paint-btn text-[10px] uppercase py-2 font-bold rounded-xl border border-emerald-500 bg-emerald-600/20 text-emerald-400 shadow-md";
+                    }
+                };
+            });
+
+            // Activity counter dynamic sync listener
+            activityInput.oninput = (e) => {
+                const val = Math.max(0, parseInt(e.target.value) || 0);
+                userUserData[selectedStateId].count = val;
+                if (val > 0 && userUserData[selectedStateId].status === 'unvisited') {
+                    userUserData[selectedStateId].status = 'visited';
+                } else if (val === 0) {
+                    userUserData[selectedStateId].status = 'unvisited';
+                }
+                updateScoreboard();
+                renderChecklist();
+                renderMapGraphic();
+            };
+
+            // Live checklist lookup engine input monitoring
+            searchInput.oninput = () => renderChecklist();
+
+            // Mode Toggle Action mapping click
+            document.getElementById('mode-toggle').onclick = (e) => {
+                currentMapMode = currentMapMode === 'status' ? 'count' : 'status';
+                e.target.textContent = `Mode: ${currentMapMode.toUpperCase()}`;
+                renderMapGraphic();
+            };
+
+            // Bulk clear action operations logic pipeline
+            document.getElementById('bulk-clear').onclick = () => {
+                STATES_DATA.forEach(s => {
+                    userUserData[s.id] = { status: 'unvisited', count: 0 };
+                });
+                selectStateNode(selectedStateId);
+                updateScoreboard();
+                renderChecklist();
+            };
+
+            document.getElementById('bulk-visit').onclick = () => {
+                STATES_DATA.forEach(s => {
+                    userUserData[s.id] = { status: 'visited', count: 1 };
+                });
+                selectStateNode(selectedStateId);
+                updateScoreboard();
+                renderChecklist();
+            };
+        }
+
+        // Launch Application Instance
+        window.onload = initApp;
     </script>
 </body>
 </html>
